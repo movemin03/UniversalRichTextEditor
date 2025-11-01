@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>유니버셜 텍스트 에디터 (v0.8)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        * { font-family: 'Noto Sans KR', sans-serif; -webkit-font-smoothing: antialiased; }
+        html, body { height: 100%; margin: 0; padding: 0; }
+        :root { --editor-border:#D1D5DB; --editor-bg:#F3F4F6; --editor-border-blue:#3B82F6; --toolbar-gap:0.75rem; }
+        .editor-area { outline:none; resize:none; line-height:160% !important; font-size:16px; }
+        .editor-area:empty:before { content: attr(data-placeholder); color:#999; }
+        .editor-area .indent-level-1{padding-left:40px!important}.editor-area .indent-level-2{padding-left:80px!important}.editor-area .indent-level-3{padding-left:120px!important}.editor-area .indent-level-4{padding-left:160px!important}.editor-area .indent-level-5{padding-left:200px!important}.editor-area .indent-level-6{padding-left:240px!important}
+        .editor-area *{ line-height:160%!important; font-size:16px }
+        .editor-area p{ margin:0!important; padding:0!important; line-height:160%!important; font-size:16px!important }
+        .editor-area h1{ font-size:32px!important; font-weight:bold!important; line-height:160%!important; margin:0!important; padding:20px 0 8px 0!important }
+        .editor-area h2{ font-size:24px!important; font-weight:bold!important; line-height:160%!important; margin:0!important; padding:16px 0 4px 0!important }
+        .editor-area h3{ font-size:18px!important; font-weight:bold!important; line-height:160%!important; margin:0!important; padding:12px 0 4px 0!important }
+        .editor-area ul,.editor-area ol{ margin:0!important; padding-left:0!important; list-style-position:inside!important }
+        .editor-area ul{ list-style-type:disc } .editor-area ol{ list-style-type:decimal }
+        .editor-area li{ margin:0!important; padding:0!important; line-height:160%!important; font-size:16px!important }
+        .editor-area ul[style*="text-align: center"], .editor-area ol[style*="text-align: center"], .editor-area p[style*="text-align: center"]{ text-align:center!important }
+        .editor-area ul[style*="text-align: right"], .editor-area ol[style*="text-align: right"], .editor-area p[style*="text-align: right"]{ text-align:right!important }
+        .editor-area blockquote{ margin:0!important; padding:16px 20px 16px 64px!important; line-height:160%!important; font-size:16px!important; border-left:4px solid #0078ff!important; background:#f8f9fa!important; color:#555!important; position:relative }
+        .editor-area pre{ margin:0!important; padding:16px!important; overflow-x:auto!important; font-size:16px!important; line-height:160%!important; background:#f5f5f5!important; border:1px solid #e0e0e0!important; border-radius:6px!important; position:relative; white-space:pre-wrap!important; word-wrap:break-word!important; padding-top:40px!important }
+        .editor-area pre .copy-code-btn{ position:absolute; top:8px; right:8px; background:#9CA3AF; color:#fff; border:none; border-radius:4px; padding:6px 12px; cursor:pointer; font-size:12px; transition:background .2s }
+        .editor-area pre .copy-code-btn:hover{ background:#6B7280 }
+        .toolbar-btn,.toolbar-select{ background:var(--editor-bg); border:2px solid var(--editor-border); border-radius:.375rem; padding:.5rem .75rem; cursor:pointer; font-size:.875rem; font-weight:500; transition:all .2s; display:inline-flex; align-items:center; gap:var(--toolbar-gap); height:40px; user-select:none }
+        .toolbar-btn:hover{ background:#E5E7EB } .toolbar-btn.active{ background:var(--editor-border-blue); color:#fff; border-color:var(--editor-border-blue) }
+        .font-size-input{ width:70px; height:40px; padding:8px 12px; border:2px solid var(--editor-border); border-radius:4px; font-size:13px; text-align:center; background:var(--editor-bg) }
+        .font-size-input:focus{ outline:none; border-color:var(--editor-border-blue); background:#fff }
+        .font-size-spinner-btn{ width:24px; height:19px; padding:0; border:1px solid var(--editor-border); background:var(--editor-bg); cursor:pointer; font-size:10px; display:flex; align-items:center; justify-content:center }
+        .font-size-spinner-up{ border-radius:4px 4px 0 0; border-bottom:none }
+        .font-size-spinner-down{ border-radius:0 0 4px 4px; border-top:none }
+        .color-picker-input{ width:44px; height:40px; padding:0; border:2px solid var(--editor-border); border-radius:4px; cursor:pointer; background:var(--editor-bg) }
+        .color-picker-input:focus{ outline:none; border-color:var(--editor-border-blue) }
+        .color-btn{ position:relative }
+        .color-swatch{ width:20px; height:20px; border-radius:3px; border:2px solid rgba(0,0,0,0.2); display:inline-block }
+        .color-section{ display:flex; flex-direction:column; gap:8px }
+        .color-label{ font-size:12px; font-weight:600; color:#374151; text-transform:uppercase; letter-spacing:0.5px }
+        .color-picker-wrapper{ display:flex; align-items:center; gap:8px; flex:1; padding:12px; border:1px solid #d1d5db; border-radius:6px; background:#f9fafb }
+        .mobile-color-input{ width:50px; height:50px; padding:2px; border:2px solid #d1d5db; border-radius:6px; cursor:pointer }
+        .color-hex-text{ font-size:14px; font-weight:500; color:#374151; min-width:60px; text-align:center }
+        .mode-textarea{ outline:none; resize:none; line-height:160% !important; font-size:16px; padding:16px; border:none; font-family:'Courier New', monospace; width:100%; height:100%; background:#fff; overflow-y:auto; overflow-x:auto; }
+        .mode-textarea:disabled{ background:#f9fafb; color:#6b7280; cursor:not-allowed; }
+        .compat-editor-preview { outline:none; resize:none; line-height:160% !important; font-size:16px; padding:16px; border:none; width:100%; height:100%; background:#fff; overflow-y:auto; overflow-x:hidden; user-select:none; }
+        .editor-container { display:flex; flex-direction:column; flex:1; overflow:hidden; background:#fff; }
+        .editor-content { flex:1; overflow-y:auto; overflow-x:hidden; }
+        .mode-tabs{ display:flex; gap:0; border-bottom:2px solid #d1d5db; background:#fff; flex-shrink:0; overflow-x:auto; }
+        .mode-tab{ padding:12px 20px; cursor:pointer; font-size:14px; font-weight:500; color:#6b7280; border:none; background:transparent; position:relative; transition:color 0.2s; white-space:nowrap; }
+        .mode-tab:hover{ color:#374151 }
+        .mode-tab.active{ color:var(--editor-border-blue); }
+        .mode-tab.active::after{ content:''; position:absolute; bottom:-2px; left:0; right:0; height:2px; background:var(--editor-border-blue) }
+        .status-info{ display:flex; justify-content:space-between; align-items:center; padding:8px 16px; font-size:12px; color:#6b7280; background:#fff; flex-shrink:0; border-top:1px solid #d1d5db; }
+        /* 스크롤바 스타일 */
+        .editor-content::-webkit-scrollbar, .mode-textarea::-webkit-scrollbar, .compat-editor-preview::-webkit-scrollbar { width:8px; }
+        .editor-content::-webkit-scrollbar-track, .mode-textarea::-webkit-scrollbar-track, .compat-editor-preview::-webkit-scrollbar-track { background:#f1f5f9; }
+        .editor-content::-webkit-scrollbar-thumb, .mode-textarea::-webkit-scrollbar-thumb, .compat-editor-preview::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:4px; }
+        .editor-content::-webkit-scrollbar-thumb:hover, .mode-textarea::-webkit-scrollbar-thumb:hover, .compat-editor-preview::-webkit-scrollbar-thumb:hover { background:#94a3b8; }
+        @media (max-width:768px){ .toolbar-btn,.toolbar-select{ height:auto; padding:12px 14px } .font-size-input{ width:60px; height:48px } .color-picker-input{ width:48px; height:48px } .mode-tab{ padding:10px 14px; font-size:12px; } }
+    </style>
+</head>
+<body class="bg-gray-50 flex flex-col h-screen">
+    <div class="bg-white border-b border-gray-300 flex items-center justify-between px-4 py-3">
+        <h1 class="text-lg md:text-xl font-bold text-gray-900">유니버셜 텍스트 에디터</h1>
+        <div class="text-xs md:text-sm text-gray-600">글자 수: <span id="charCount" class="font-bold">0</span>자</div>
+    </div>
+
+    <div class="toolbar sticky top-0 z-100 bg-gray-50 border-b border-gray-300 px-3 py-3 flex flex-wrap items-center overflow-x-auto" style="gap: var(--toolbar-gap);">
+        <button class="toolbar-btn" data-format="bold" title="굵게"><i class="fas fa-bold"></i><span class="hidden md:inline text-sm">굵게</span></button>
+        <button class="toolbar-btn" data-format="italic" title="기울임"><i class="fas fa-italic"></i><span class="hidden md:inline text-sm">기울임</span></button>
+        <button class="toolbar-btn" data-format="underline" title="밑줄"><i class="fas fa-underline"></i><span class="hidden md:inline text-sm">밑줄</span></button>
+        <div class="w-px h-8 bg-gray-400 mx-0.5 hidden md:block"></div>
+        <button class="toolbar-btn color-btn hidden md:inline-flex" id="textColorBtn" title="글자색"><i class="fas fa-palette"></i><span class="hidden md:inline text-sm">글자색</span></button>
+        <input type="color" id="textColorPicker" class="color-picker-input hidden md:inline-block" value="#000000">
+        <button class="toolbar-btn color-btn hidden md:inline-flex" id="bgColorBtn" title="배경색"><i class="fas fa-highlighter"></i><span class="hidden md:inline text-sm">배경색</span></button>
+        <input type="color" id="bgColorPicker" class="color-picker-input hidden md:inline-block" value="#FFFF00">
+        <div class="w-px h-8 bg-gray-400 mx-0.5 hidden md:block"></div>
+        <button class="toolbar-btn" data-format="insertUnorderedList" title="글머리"><i class="fas fa-list-ul"></i><span class="hidden md:inline text-sm">• 목록</span></button>
+        <button class="toolbar-btn" data-format="insertOrderedList" title="번호"><i class="fas fa-list-ol"></i><span class="hidden md:inline text-sm">1. 번호</span></button>
+        <div class="w-px h-8 bg-gray-400 mx-0.5 hidden md:block"></div>
+        <button class="toolbar-btn hidden md:inline-flex" id="blockquoteBtn" title="인용문"><i class="fas fa-quote-left"></i><span>인용문</span></button>
+        <button class="toolbar-btn hidden md:inline-flex" id="codeBtn" title="코드"><i class="fas fa-code"></i><span>코드</span></button>
+        <div class="w-px h-8 bg-gray-400 mx-0.5 hidden md:block"></div>
+        <div class="flex items-center" style="gap: 4px;">
+            <input type="number" id="fontSizeInput" class="font-size-input" value="16" min="14" max="64"><span class="text-xs text-gray-600 hidden md:inline">px</span>
+            <div class="flex flex-col" style="gap: 0;">
+                <button id="fontSizeUp" class="font-size-spinner-btn font-size-spinner-up"><i class="fas fa-chevron-up text-xs"></i></button>
+                <button id="fontSizeDown" class="font-size-spinner-btn font-size-spinner-down"><i class="fas fa-chevron-down text-xs"></i></button>
+            </div>
+        </div>
+        <div class="w-px h-8 bg-gray-400 mx-0.5 hidden md:block"></div>
+        <button class="toolbar-btn hidden md:inline-flex" data-format="justifyLeft" title="왼쪽"><i class="fas fa-align-left"></i><span>왼쪽</span></button>
+        <button class="toolbar-btn hidden md:inline-flex" data-format="justifyCenter" title="가운데"><i class="fas fa-align-center"></i><span>가운데</span></button>
+        <button class="toolbar-btn hidden md:inline-flex" data-format="justifyRight" title="오른쪽"><i class="fas fa-align-right"></i><span>오른쪽</span></button>
+        <div class="w-px h-8 bg-gray-400 mx-0.5 hidden md:block"></div>
+        <select id="indentSelect" class="toolbar-select hidden md:inline-block" title="들여쓰기">
+            <option value="">들여쓰기</option><option value="0">기본</option><option value="1">1단</option><option value="2">2단</option><option value="3">3단</option><option value="4">4단</option><option value="5">5단</option><option value="6">6단</option>
+        </select>
+        <select id="styleSelect" class="toolbar-select hidden md:inline-block" title="스타일">
+            <option value="">스타일</option><option value="h1">큰 제목</option><option value="h2">중간 제목</option><option value="h3">작은 제목</option><option value="p">본문</option>
+        </select>
+        <button class="toolbar-btn md:hidden ml-auto" id="moreBtn"><i class="fas fa-ellipsis-v"></i></button>
+    </div>
+
+    <div class="editor-container">
+        <div class="editor-content">
+            <div class="editor-area p-4 md:p-8" contenteditable="true" id="editor" data-placeholder="여기에 내용을 입력하세요..."></div>
+            <textarea id="htmlMode" class="mode-textarea" placeholder="HTML 코드..." style="display:none;"></textarea>
+            <div id="compatEditorMode" class="compat-editor-preview" style="display:none;"></div>
+            <textarea id="compatHtmlMode" class="mode-textarea" placeholder="네이버 호환 HTML..." style="display:none;" readonly></textarea>
+        </div>
+
+        <div class="mode-tabs">
+            <button class="mode-tab active" data-mode="editor"><i class="fas fa-pen"></i> 에디터</button>
+            <button class="mode-tab" data-mode="html"><i class="fas fa-code"></i> HTML</button>
+            <button class="mode-tab" data-mode="compatEditor"><i class="fas fa-eye"></i> 호환 에디터</button>
+            <button class="mode-tab" data-mode="compatHtml"><i class="fas fa-code"></i> 호환 HTML</button>
+        </div>
+        <div class="status-info">
+            <span id="modeLabel">에디터 모드</span>
+            <span id="statusText">준비 완료</span>
+        </div>
+    </div>
+
+    <div class="fixed bottom-0 left-0 right-0 bg-white border-t rounded-t-2xl px-4 py-4 z-200 max-h-[75vh] overflow-y-auto transform translate-y-full transition-transform" id="bottomSheet">
+        <div class="flex justify-between items-center mb-4 pb-3 border-b"><span class="font-bold">추가 서식</span><button id="closeBottomSheetBtn" class="text-xl cursor-pointer"><i class="fas fa-times"></i></button></div>
+        <div class="space-y-4">
+            <div>
+                <div class="text-sm font-bold mb-3">색상</div>
+                <div class="color-section">
+                    <div>
+                        <div class="color-label">글자색</div>
+                        <div class="color-picker-wrapper">
+                            <input type="color" id="mobileTextColorPicker" class="mobile-color-input" value="#000000">
+                            <div class="color-hex-text" id="textColorHex">#000000</div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="color-label">배경색</div>
+                        <div class="color-picker-wrapper">
+                            <input type="color" id="mobileBgColorPicker" class="mobile-color-input" value="#FFFF00">
+                            <div class="color-hex-text" id="bgColorHex">#FFFF00</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div class="text-sm font-bold mb-3">정렬</div>
+                <div class="flex gap-2">
+                    <button class="align-btn flex-1 p-3 text-sm border rounded" data-format="justifyLeft"><i class="fas fa-align-left"></i> 왼쪽</button>
+                    <button class="align-btn flex-1 p-3 text-sm border rounded" data-format="justifyCenter"><i class="fas fa-align-center"></i> 중앙</button>
+                    <button class="align-btn flex-1 p-3 text-sm border rounded" data-format="justifyRight"><i class="fas fa-align-right"></i> 오른쪽</button>
+                </div>
+            </div>
+            <div>
+                <div class="text-sm font-bold mb-3">들여쓰기</div>
+                <div class="grid grid-cols-3 gap-2">
+                    <button class="indent-btn p-3 text-sm border rounded" data-level="0">기본</button>
+                    <button class="indent-btn p-3 text-sm border rounded" data-level="1">1단</button>
+                    <button class="indent-btn p-3 text-sm border rounded" data-level="2">2단</button>
+                    <button class="indent-btn p-3 text-sm border rounded" data-level="3">3단</button>
+                    <button class="indent-btn p-3 text-sm border rounded" data-level="4">4단</button>
+                    <button class="indent-btn p-3 text-sm border rounded" data-level="5">5단</button>
+                </div>
+            </div>
+            <div>
+                <div class="text-sm font-bold mb-3">특수 요소</div>
+                <div class="flex gap-2">
+                    <button id="mobileBlockquoteBtn" class="flex-1 p-3 text-sm border rounded"><i class="fas fa-quote-left"></i> 인용문</button>
+                    <button id="mobileCodeBtn" class="flex-1 p-3 text-sm border rounded"><i class="fas fa-code"></i> 코드</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const $editor = $('#editor');
+        const $htmlMode = $('#htmlMode');
+        const $compatEditorMode = $('#compatEditorMode');
+        const $compatHtmlMode = $('#compatHtmlMode');
+        const $charCount = $('#charCount');
+        const $bottomSheet = $('#bottomSheet');
+        const $fontSizeInput = $('#fontSizeInput');
+        const $textColorPicker = $('#textColorPicker');
+        const $bgColorPicker = $('#bgColorPicker');
+        const $mobileTextColorPicker = $('#mobileTextColorPicker');
+        const $mobileBgColorPicker = $('#mobileBgColorPicker');
+        const $textColorHex = $('#textColorHex');
+        const $bgColorHex = $('#bgColorHex');
+        const $modeLabel = $('#modeLabel');
+        let currentFontSize = 16;
+        let isProcessingCommand = false;
+        let currentMode = 'editor';
+
+        const modeLabels = {
+            'editor': '에디터 모드',
+            'html': 'HTML 모드',
+            'compatEditor': '호환 에디터 (미리보기)',
+            'compatHtml': '호환 HTML (미리보기)'
+        };
+
+        function execCommand(command, value=null){ try{ document.execCommand(command,false,value) }catch(e){ console.error(`Command ${command} failed:`,e) } }
+
+        // ========== Naver Compatible HTML ==========
+        function generateNaverHTML(html) {
+            const temp = document.createElement('div');
+            temp.innerHTML = html;
+            
+            // 모든 요소에서 style, class, id 제거
+            Array.from(temp.querySelectorAll('*')).forEach(el => {
+                el.removeAttribute('style');
+                el.removeAttribute('class');
+                el.removeAttribute('id');
+            });
+            
+            let result = temp.innerHTML;
+            
+            // <p>, <div> 태그 처리 - 줄바꿈으로 변환
+            result = result.replace(/<p[^>]*>([\s\S]*?)<\/p>/g, (match, content) => {
+                const text = content.trim();
+                if (!text) return '';
+                // 내부 공백/들여쓰기 제거
+                return text.replace(/\n\s*/g, ' ').replace(/\s+/g, ' ') + '<br>';
+            });
+            
+            result = result.replace(/<div[^>]*>([\s\S]*?)<\/div>/g, (match, content) => {
+                const text = content.trim();
+                if (!text) return '';
+                return text.replace(/\n\s*/g, ' ').replace(/\s+/g, ' ') + '<br>';
+            });
+            
+            // blockquote 제거
+            result = result.replace(/<blockquote[^>]*>|<\/blockquote>/g, '');
+            
+            // 연속 br 정리 (3개 이상 → 2개)
+            result = result.replace(/<br>\s*<br>\s*<br>/g, '<br><br>');
+            
+            // 시작/끝 br 제거
+            result = result.replace(/^<br>+|<br>+$/g, '');
+            
+            return result.trim();
+        }
+
+
+        // ========== HTML Prettify ==========
+        function prettifyHTML(html) {
+            let formatted = '';
+            let indent = 0;
+            const indentStr = '  ';
+            const voidElements = ['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr'];
+
+            let temp = document.createElement('div');
+            temp.innerHTML = html;
+
+            let childNodes = Array.from(temp.childNodes);
+            for (let i = 0; i < childNodes.length; i++) {
+                const node = childNodes[i];
+                if (node.nodeType === 3 && node.textContent.trim()) {
+                    const p = document.createElement('p');
+                    p.textContent = node.textContent;
+                    temp.replaceChild(p, node);
+                }
+            }
+
+            html = temp.innerHTML;
+
+            const regex = /(<[^/>]*>)|(<\/[^>]*>)|([^<]+)/g;
+            let match;
+
+            while ((match = regex.exec(html)) !== null) {
+                const content = match[0].trim();
+                if (!content) continue;
+
+                if (content.startsWith('</')) {
+                    indent = Math.max(0, indent - 1);
+                    formatted += indentStr.repeat(indent) + content + '\n';
+                }
+                else if (content.startsWith('<') && content.endsWith('/>')) {
+                    formatted += indentStr.repeat(indent) + content + '\n';
+                }
+                else if (content.startsWith('<')) {
+                    const tagName = content.match(/<(\w+)/)?.[1]?.toLowerCase();
+                    formatted += indentStr.repeat(indent) + content + '\n';
+
+                    if (tagName && !voidElements.includes(tagName)) {
+                        indent++;
+                    }
+                }
+                else {
+                    if (content.trim()) {
+                        formatted += indentStr.repeat(indent) + content + '\n';
+                    }
+                }
+            }
+
+            return formatted.trim();
+        }
+
+        // ========== Mode switching ==========
+        function switchMode(mode){
+            if(mode === 'html'){
+                const htmlContent = $editor.html();
+                const prettified = prettifyHTML(htmlContent);
+                $htmlMode.val(prettified);
+            }
+            else if(mode === 'compatHtml'){
+                const htmlContent = $htmlMode.val();
+                const naverHTML = generateNaverHTML(htmlContent);
+                $compatHtmlMode.val(naverHTML);
+            }
+            else if(mode === 'compatEditor'){
+                const naverHTML = $compatHtmlMode.val();
+                $compatEditorMode.html(naverHTML);
+            }
+            else if(mode === 'editor'){
+                // 에디터는 항상 유지
+            }
+
+            $editor.css('display', mode === 'editor' ? 'block' : 'none');
+            $htmlMode.css('display', mode === 'html' ? 'block' : 'none');
+            $compatEditorMode.css('display', mode === 'compatEditor' ? 'block' : 'none');
+            $compatHtmlMode.css('display', mode === 'compatHtml' ? 'block' : 'none');
+
+            $(`.mode-tab`).removeClass('active');
+            $(`.mode-tab[data-mode="${mode}"]`).addClass('active');
+
+            $modeLabel.text(modeLabels[mode]);
+
+            currentMode = mode;
+            updateCharCount();
+
+            if(mode === 'editor') $editor.focus();
+            else if(mode === 'html') $htmlMode.focus();
+            else if(mode === 'compatHtml') $compatHtmlMode.focus();
+        }
+
+        $(document).on('click', '.mode-tab', function(e){
+            e.preventDefault();
+            const mode = $(this).data('mode');
+            switchMode(mode);
+        });
+
+        // ========== Selection helpers ==========
+        function placeSelectionMarkers(){
+            const sel = window.getSelection();
+            if(!sel.rangeCount) return null;
+            const range = sel.getRangeAt(0).cloneRange();
+            const start = document.createElement('span'); start.id='__selStart'; start.style.display='inline-block'; start.style.width='0';
+            const end = document.createElement('span'); end.id='__selEnd'; end.style.display='inline-block'; end.style.width='0';
+            range.collapse(true); range.insertNode(start);
+            const sel2 = window.getSelection();
+            const r2 = sel2.getRangeAt(0).cloneRange(); r2.collapse(false); r2.insertNode(end);
+            return {startId:'__selStart', endId:'__selEnd'};
+        }
+        function restoreSelectionFromMarkers(){
+            const s = document.getElementById('__selStart');
+            const e = document.getElementById('__selEnd');
+            if(!s || !e) return;
+            const range = document.createRange();
+            range.setStartAfter(s); range.setEndBefore(e);
+            const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+            s.parentNode && s.parentNode.removeChild(s);
+            e.parentNode && e.parentNode.removeChild(e);
+        }
+
+        // ========== Node helpers ==========
+        function closestSpecial(node){ while(node && node!==$editor[0]){ if(node.tagName==='PRE') return 'PRE'; if(node.tagName==='BLOCKQUOTE') return 'BLOCKQUOTE'; node = node.parentNode } return null }
+        function getClosest(el, tags){ let n = el; while(n && n!==$editor[0]){ if(n.nodeType===1 && tags.includes(n.tagName)) return n; n = n.parentNode } return null }
+        function unwrap(el){ if(!el) return; const parent = el.parentNode; while(el.firstChild){ parent.insertBefore(el.firstChild, el) } parent.removeChild(el) }
+        function wrapRangeWith(range, tagName){
+            const wrapper = document.createElement(tagName);
+            const frag = range.extractContents();
+            wrapper.appendChild(frag);
+            range.insertNode(wrapper);
+            return wrapper;
+        }
+        function ensureNotInside(tagName){
+            const sel = window.getSelection(); if(!sel.rangeCount) return;
+            let node = sel.getRangeAt(0).startContainer; if(node.nodeType===3) node = node.parentNode;
+            const target = getClosest(node,[tagName]); if(target) unwrap(target);
+        }
+
+        // ========== Font size ==========
+        function applyFontSizeToSelection(size){ size = Math.max(14, Math.min(64, parseInt(size))); const sel = window.getSelection(); if(sel.rangeCount===0){ $editor.css('font-size', size+'px') } else { try{ let node = sel.getRangeAt(0).startContainer; if(node.nodeType===3) node=node.parentNode; let t = getClosest(node,['P','H1','H2','H3','LI']); if(t){ t.style.fontSize = size+'px'; currentFontSize=size; $fontSizeInput.val(size); return } }catch(e){ console.error('Error applying font size:',e) } } currentFontSize=size }
+        $fontSizeInput.on('input change', function(){ applyFontSizeToSelection($(this).val()) });
+        $('#fontSizeUp').on('click', function(e){ e.preventDefault(); applyFontSizeToSelection(currentFontSize+1); $fontSizeInput.val(currentFontSize) });
+        $('#fontSizeDown').on('click', function(e){ e.preventDefault(); applyFontSizeToSelection(currentFontSize-1); $fontSizeInput.val(currentFontSize) });
+
+        function updateFontSizeDisplay(){ const sel = window.getSelection(); if(sel.rangeCount===0) return; try{ let node = sel.getRangeAt(0).startContainer; if(node.nodeType===3) node=node.parentNode; let t = getClosest(node,['P','H1','H2','H3','LI']); if(t){ const style = t.getAttribute('style')||''; const m = style.match(/font-size:\s*(\d+)px/); if(m){ $fontSizeInput.val(m[1]); currentFontSize=parseInt(m[1]) } else { const computed = window.getComputedStyle(t).fontSize; const size = parseInt(computed); $fontSizeInput.val(size); currentFontSize=size } } }catch(e){ console.error('Error updating font size display:',e) } }
+        document.addEventListener('selectionchange', updateFontSizeDisplay); $editor.on('mouseup keyup', updateFontSizeDisplay);
+
+        // ========== Color picker ==========
+        $('#textColorBtn').on('click', function(e){ e.preventDefault(); $textColorPicker.click() });
+        $('#bgColorBtn').on('click', function(e){ e.preventDefault(); $bgColorPicker.click() });
+
+        $textColorPicker.on('change input', function(e){ execCommand('foreColor', $(this).val()); $editor.focus() });
+        $bgColorPicker.on('change input', function(e){ execCommand('backColor', $(this).val()); $editor.focus() });
+
+        $mobileTextColorPicker.on('change input', function(e){
+            const color = $(this).val();
+            execCommand('foreColor', color);
+            $textColorHex.text(color.toUpperCase());
+            $editor.focus()
+        });
+
+        $mobileBgColorPicker.on('change input', function(e){
+            const color = $(this).val();
+            execCommand('backColor', color);
+            $bgColorHex.text(color.toUpperCase());
+            $editor.focus()
+        });
+
+        $(document).on('click', '.toolbar-btn[data-format]', function(e){ e.preventDefault(); execCommand($(this).data('format')); updateToolbarState() });
+
+        // ========== Blockquote toggle ==========
+        function toggleBlockquote(){ const sel = window.getSelection(); if(!sel.rangeCount) return; const special = closestSpecial(sel.getRangeAt(0).startContainer);
+            if(special==='BLOCKQUOTE'){ const markers = placeSelectionMarkers(); try{ let n = sel.getRangeAt(0).startContainer; if(n.nodeType===3) n=n.parentNode; const bq = getClosest(n,['BLOCKQUOTE']); if(bq) unwrap(bq) } finally { restoreSelectionFromMarkers() } return }
+            ensureNotInside('PRE');
+            const markers = placeSelectionMarkers();
+            try{
+                const r = sel.getRangeAt(0);
+                if(r.collapsed){ let n = r.startContainer; if(n.nodeType===3) n=n.parentNode; let target = getClosest(n,['P','H1','H2','H3','DIV','LI']); if(!target){ target = n } const bq = document.createElement('BLOCKQUOTE'); while(target.firstChild) bq.appendChild(target.firstChild); target.appendChild(bq) }
+                else{ wrapRangeWith(r,'BLOCKQUOTE') }
+            } catch(e){ console.error('Blockquote toggle failed:',e) } finally{ restoreSelectionFromMarkers() }
+        }
+        $('#blockquoteBtn, #mobileBlockquoteBtn').on('click', function(e){ e.preventDefault(); toggleBlockquote() });
+
+        // ========== Code toggle ==========
+        function addCopyButton(pre){ if($(pre).find('.copy-code-btn').length>0) return; $(pre).css('position','relative'); const btn = document.createElement('button'); btn.className='copy-code-btn'; btn.innerHTML='<i class="fas fa-copy"></i> 복사'; btn.addEventListener('click', function(e){ e.preventDefault(); const code = $(pre).text(); navigator.clipboard.writeText(code).then(()=>{ const o = btn.innerHTML; btn.innerHTML='✓ 복사됨'; setTimeout(()=>{ btn.innerHTML=o },2000) }).catch(()=>{ alert('복사 실패') }) }); $(pre).prepend(btn) }
+        function toggleCode(){ const sel = window.getSelection(); if(!sel.rangeCount) return; const special = closestSpecial(sel.getRangeAt(0).startContainer);
+            if(special==='PRE'){ const markers = placeSelectionMarkers(); try{ let n = sel.getRangeAt(0).startContainer; if(n.nodeType===3) n=n.parentNode; const pre = getClosest(n,['PRE']); if(pre){ $(pre).find('.copy-code-btn').remove(); unwrap(pre) } } finally { restoreSelectionFromMarkers() } return }
+            ensureNotInside('BLOCKQUOTE');
+            const markers = placeSelectionMarkers();
+            try{
+                const r = sel.getRangeAt(0);
+                if(r.collapsed){ let n = r.startContainer; if(n.nodeType===3) n=n.parentNode; let target = getClosest(n,['P','H1','H2','H3','DIV','LI']); if(!target){ target = n } const pre = document.createElement('PRE'); while(target.firstChild) pre.appendChild(target.firstChild); target.appendChild(pre); addCopyButton(pre) }
+                else{ const pre = wrapRangeWith(r,'PRE'); addCopyButton(pre) }
+            } catch(e){ console.error('Code block toggle failed:',e) } finally { restoreSelectionFromMarkers() }
+        }
+        $('#codeBtn, #mobileCodeBtn').on('click', function(e){ e.preventDefault(); toggleCode() });
+
+        // ========== Style & indent protections ==========
+        function isInsideSpecialBlock(){ const sel = window.getSelection(); if(!sel.rangeCount) return null; let n = sel.getRangeAt(0).startContainer; if(n.nodeType===3) n=n.parentNode; return closestSpecial(n) }
+        $('#styleSelect').on('change', function(){ const tag = this.value; if(!tag) return; if(isInsideSpecialBlock()){ alert('코드 또는 인용문 내에서는 스타일을 변경할 수 없습니다.'); this.selectedIndex = 0; return } const sel = window.getSelection(); if(!sel.rangeCount) return; try{ let n = sel.getRangeAt(0).startContainer; if(n.nodeType===3) n=n.parentNode; let t = getClosest(n,['P','H1','H2','H3','DIV','LI']); if(t){ t.removeAttribute('style'); document.execCommand('formatBlock', false, tag==='p'?'<p>':`<${tag}>`); this.selectedIndex=0; updateFontSizeDisplay(); return } document.execCommand('formatBlock', false, `<${tag}>`); this.selectedIndex=0; updateFontSizeDisplay() }catch(e){ console.error('Style change failed:',e); this.selectedIndex=0 } });
+
+        function applyIndentToSelection(level){ if(isInsideSpecialBlock()){ alert('코드 또는 인용문 내에서는 들여쓰기를 적용할 수 없습니다.'); return } const sel = window.getSelection(); if(!sel.rangeCount) return; try{ let sN = sel.getRangeAt(0).startContainer; let eN = sel.getRangeAt(0).endContainer; if(sN.nodeType===3) sN=sN.parentNode; if(eN.nodeType===3) eN=eN.parentNode; const elements = new Set(); const collect=(node)=>{ if(!node) return false; if(node===$editor[0]) return true; const tg = node.tagName; if(['P','H1','H2','H3','LI','DIV'].includes(tg)) elements.add(node); if(node.nodeType===1){ for(let child of node.children){ if(['P','H1','H2','H3','LI','DIV'].includes(child.tagName)) elements.add(child) } } return collect(node.parentNode) }; collect(sN); collect(eN); elements.forEach(el=>{ for(let i=0;i<=6;i++){ $(el).removeClass(`indent-level-${i}`) } if(level!=='0' && level){ $(el).addClass(`indent-level-${level}`) } }) }catch(e){ console.error('Indent failed:',e) } }
+        $('#indentSelect').on('change', function(){ const level = this.value; if(level!==''){ applyIndentToSelection(level); this.selectedIndex=0 } });
+        $(document).on('click','.indent-btn',function(e){ e.preventDefault(); applyIndentToSelection($(this).data('level').toString()) });
+        $(document).on('click','.align-btn',function(e){ e.preventDefault(); execCommand($(this).data('format')) });
+
+        function toggleBottomSheet(){ $bottomSheet.toggleClass('translate-y-full') }
+        $('#moreBtn, #closeBottomSheetBtn').on('click', function(e){ e.preventDefault(); toggleBottomSheet() });
+
+        function updateCharCount(){
+            if(currentMode === 'editor') $charCount.text($editor.text().length.toLocaleString());
+            else if(currentMode === 'html') $charCount.text($htmlMode.val().length.toLocaleString());
+            else if(currentMode === 'compatEditor') $charCount.text($compatEditorMode.text().length.toLocaleString());
+            else if(currentMode === 'compatHtml') $charCount.text($compatHtmlMode.val().length.toLocaleString());
+        }
+
+        $editor.on('input', updateCharCount);
+        $htmlMode.on('input', updateCharCount);
+
+        $editor.on('keydown', function(e){ if(e.key==='Enter'){ const sel = window.getSelection(); if(sel.rangeCount>0){ const node = sel.anchorNode; const parent = node.nodeType===3 ? node.parentNode : node; if($(parent).closest('pre, blockquote').length){ e.preventDefault(); execCommand('insertLineBreak') } } return } if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='b'){ e.preventDefault(); execCommand('bold') } if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='i'){ e.preventDefault(); execCommand('italic') } if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='u'){ e.preventDefault(); execCommand('underline') } });
+
+        function updateToolbarState(){ const cmds=['bold','italic','underline','insertUnorderedList','insertOrderedList']; cmds.forEach(c=>{ try{ if(document.queryCommandState(c)){ $(`.toolbar-btn[data-format="${c}"]`).addClass('active') } else { $(`.toolbar-btn[data-format="${c}"]`).removeClass('active') } }catch(e){} }) }
+        document.addEventListener('selectionchange', updateToolbarState); $editor.on('mouseup keyup', updateToolbarState);
+
+        $editor.on('click', function(){ if(!isProcessingCommand){ setTimeout(()=>{ $(this).find('pre').each(function(){ addCopyButton(this) }) },10) } });
+        $editor.focus();
+    </script>
+</body>
+</html>
