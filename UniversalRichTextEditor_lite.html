@@ -27,8 +27,26 @@
         .editor-area ul[style*="text-align: right"], .editor-area ol[style*="text-align: right"], .editor-area p[style*="text-align: right"]{ text-align:right!important }
         .editor-area blockquote{ margin:0!important; padding:16px 20px 16px 64px!important; line-height:160%!important; font-size:16px!important; border-left:4px solid #0078ff!important; background:#f8f9fa!important; color:#555!important; position:relative }
         .editor-area pre{ margin:0!important; padding:16px!important; overflow-x:auto!important; font-size:16px!important; line-height:160%!important; background:#f5f5f5!important; border:1px solid #e0e0e0!important; border-radius:6px!important; position:relative; white-space:pre-wrap!important; word-wrap:break-word!important; padding-top:40px!important }
-        .editor-area pre .copy-code-btn{ position:absolute; top:8px; right:8px; background:#9CA3AF; color:#fff; border:none; border-radius:4px; padding:6px 12px; cursor:pointer; font-size:12px; transition:background .2s }
+        .editor-area pre .copy-code-btn{ 
+            position:absolute; 
+            top:8px; 
+            right:8px; 
+            background:#9CA3AF; 
+            color:#fff; 
+            border:none; 
+            border-radius:4px; 
+            padding:8px 10px; 
+            cursor:pointer; 
+            font-size:14px; 
+            transition:background .2s;
+            width:32px;
+            height:32px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+        }
         .editor-area pre .copy-code-btn:hover{ background:#6B7280 }
+        .editor-area pre .copy-code-btn.copied{ background:#10B981 }
         .toolbar-btn,.toolbar-select{ background:var(--editor-bg); border:2px solid var(--editor-border); border-radius:.375rem; padding:.5rem .75rem; cursor:pointer; font-size:.875rem; font-weight:500; transition:all .2s; display:inline-flex; align-items:center; gap:var(--toolbar-gap); height:40px; user-select:none }
         .toolbar-btn:hover{ background:#E5E7EB } .toolbar-btn.active{ background:var(--editor-border-blue); color:#fff; border-color:var(--editor-border-blue) }
         .font-size-input{ width:70px; height:40px; padding:8px 12px; border:2px solid var(--editor-border); border-radius:4px; font-size:13px; text-align:center; background:var(--editor-bg) }
@@ -373,18 +391,83 @@
         $('#blockquoteBtn, #mobileBlockquoteBtn').on('click', function(e){ e.preventDefault(); toggleBlockquote() });
 
         // ========== Code toggle ==========
-        function addCopyButton(pre){ if($(pre).find('.copy-code-btn').length>0) return; $(pre).css('position','relative'); const btn = document.createElement('button'); btn.className='copy-code-btn'; btn.innerHTML='<i class="fas fa-copy"></i> 복사'; btn.addEventListener('click', function(e){ e.preventDefault(); const code = $(pre).text(); navigator.clipboard.writeText(code).then(()=>{ const o = btn.innerHTML; btn.innerHTML='✓ 복사됨'; setTimeout(()=>{ btn.innerHTML=o },2000) }).catch(()=>{ alert('복사 실패') }) }); $(pre).prepend(btn) }
-        function toggleCode(){ const sel = window.getSelection(); if(!sel.rangeCount) return; const special = closestSpecial(sel.getRangeAt(0).startContainer);
-            if(special==='PRE'){ const markers = placeSelectionMarkers(); try{ let n = sel.getRangeAt(0).startContainer; if(n.nodeType===3) n=n.parentNode; const pre = getClosest(n,['PRE']); if(pre){ $(pre).find('.copy-code-btn').remove(); unwrap(pre) } } finally { restoreSelectionFromMarkers() } return }
+        function addCopyButton(pre){ 
+            // pre 태그가 아니면 리턴
+            if(!pre || pre.tagName !== 'PRE') return;
+            if($(pre).find('.copy-code-btn').length>0) return; 
+            
+            $(pre).css('position','relative'); 
+            const btn = document.createElement('button'); 
+            btn.className='copy-code-btn'; 
+            btn.innerHTML='<i class="fas fa-copy"></i>'; 
+            btn.addEventListener('click', function(e){ 
+                e.preventDefault(); 
+                const code = $(pre).clone().find('.copy-code-btn').remove().end().text(); 
+                navigator.clipboard.writeText(code).then(()=>{ 
+                    $(btn).addClass('copied');
+                    btn.innerHTML='<i class="fas fa-check"></i>'; 
+                    setTimeout(()=>{ 
+                        $(btn).removeClass('copied');
+                        btn.innerHTML='<i class="fas fa-copy"></i>';
+                    },2000) 
+                }).catch(()=>{ 
+                    alert('복사 실패') 
+                }) 
+            }); 
+            $(pre).prepend(btn) 
+        }
+        
+        function toggleCode(){ 
+            const sel = window.getSelection(); 
+            if(!sel.rangeCount) return; 
+            const special = closestSpecial(sel.getRangeAt(0).startContainer);
+            
+            if(special==='PRE'){ 
+                const markers = placeSelectionMarkers(); 
+                try{ 
+                    let n = sel.getRangeAt(0).startContainer; 
+                    if(n.nodeType===3) n=n.parentNode; 
+                    const pre = getClosest(n,['PRE']); 
+                    if(pre){ 
+                        $(pre).find('.copy-code-btn').remove(); 
+                        unwrap(pre) 
+                    } 
+                } finally { 
+                    restoreSelectionFromMarkers() 
+                } 
+                return 
+            }
+            
             ensureNotInside('BLOCKQUOTE');
             const markers = placeSelectionMarkers();
+            
             try{
                 const r = sel.getRangeAt(0);
-                if(r.collapsed){ let n = r.startContainer; if(n.nodeType===3) n=n.parentNode; let target = getClosest(n,['P','H1','H2','H3','DIV','LI']); if(!target){ target = n } const pre = document.createElement('PRE'); while(target.firstChild) pre.appendChild(target.firstChild); target.appendChild(pre); addCopyButton(pre) }
-                else{ const pre = wrapRangeWith(r,'PRE'); addCopyButton(pre) }
-            } catch(e){ console.error('Code block toggle failed:',e) } finally { restoreSelectionFromMarkers() }
+                if(r.collapsed){ 
+                    let n = r.startContainer; 
+                    if(n.nodeType===3) n=n.parentNode; 
+                    let target = getClosest(n,['P','H1','H2','H3','DIV','LI']); 
+                    if(!target){ target = n } 
+                    const pre = document.createElement('PRE'); 
+                    while(target.firstChild) pre.appendChild(target.firstChild); 
+                    target.appendChild(pre); 
+                    addCopyButton(pre) 
+                }
+                else{ 
+                    const pre = wrapRangeWith(r,'PRE'); 
+                    addCopyButton(pre) 
+                }
+            } catch(e){ 
+                console.error('Code block toggle failed:',e) 
+            } finally { 
+                restoreSelectionFromMarkers() 
+            }
         }
-        $('#codeBtn, #mobileCodeBtn').on('click', function(e){ e.preventDefault(); toggleCode() });
+        
+        $('#codeBtn, #mobileCodeBtn').on('click', function(e){ 
+            e.preventDefault(); 
+            toggleCode() 
+        });
 
         // ========== Style & indent protections ==========
         function isInsideSpecialBlock(){ const sel = window.getSelection(); if(!sel.rangeCount) return null; let n = sel.getRangeAt(0).startContainer; if(n.nodeType===3) n=n.parentNode; return closestSpecial(n) }
@@ -411,7 +494,17 @@
         function updateToolbarState(){ const cmds=['bold','italic','underline','insertUnorderedList','insertOrderedList']; cmds.forEach(c=>{ try{ if(document.queryCommandState(c)){ $(`.toolbar-btn[data-format="${c}"]`).addClass('active') } else { $(`.toolbar-btn[data-format="${c}"]`).removeClass('active') } }catch(e){} }) }
         document.addEventListener('selectionchange', updateToolbarState); $editor.on('mouseup keyup', updateToolbarState);
 
-        $editor.on('click', function(){ if(!isProcessingCommand){ setTimeout(()=>{ $(this).find('pre').each(function(){ addCopyButton(this) }) },10) } });
+        // 에디터 클릭 시 PRE 태그에만 복사 버튼 추가
+        $editor.on('click', function(){ 
+            if(!isProcessingCommand){ 
+                setTimeout(()=>{ 
+                    $(this).find('pre').each(function(){ 
+                        addCopyButton(this) 
+                    }) 
+                },10) 
+            } 
+        });
+        
         $editor.focus();
     </script>
 </body>
