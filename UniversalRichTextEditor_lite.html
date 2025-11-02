@@ -44,6 +44,7 @@
             display:flex;
             align-items:center;
             justify-content:center;
+            z-index:10;
         }
         .editor-area pre .copy-code-btn:hover{ background:#6B7280 }
         .editor-area pre .copy-code-btn.copied{ background:#10B981 }
@@ -268,21 +269,15 @@
             return formatted.trim();
         }
 
-        // ========== Mode switching (양방향) ==========
+        // ========== Mode switching (단방향: 에디터 → HTML만) ==========
         function switchMode(mode){
             if(mode === 'html'){
-                // 에디터 → HTML
+                // 에디터 → HTML (단방향)
                 const htmlContent = $editor.html();
                 const prettified = prettifyHTML(htmlContent);
                 $htmlMode.val(prettified);
             }
-            else if(mode === 'editor'){
-                // HTML → 에디터
-                const htmlContent = $htmlMode.val();
-                $editor.html(htmlContent);
-                // 코드 블록에 복사 버튼 추가
-                $editor.find('pre').each(function(){ addCopyButton(this) });
-            }
+            // HTML → 에디터 전환 없음 (읽기 전용)
 
             $editor.css('display', mode === 'editor' ? 'block' : 'none');
             $htmlMode.css('display', mode === 'html' ? 'block' : 'none');
@@ -392,7 +387,6 @@
 
         // ========== Code toggle ==========
         function addCopyButton(pre){ 
-            // pre 태그가 아니면 리턴
             if(!pre || pre.tagName !== 'PRE') return;
             if($(pre).find('.copy-code-btn').length>0) return; 
             
@@ -402,7 +396,7 @@
             btn.innerHTML='<i class="fas fa-copy"></i>'; 
             btn.addEventListener('click', function(e){ 
                 e.preventDefault(); 
-                const code = $(pre).clone().find('.copy-code-btn').remove().end().text(); 
+                const code = $(pre).text(); 
                 navigator.clipboard.writeText(code).then(()=>{ 
                     $(btn).addClass('copied');
                     btn.innerHTML='<i class="fas fa-check"></i>'; 
@@ -487,24 +481,13 @@
         }
 
         $editor.on('input', updateCharCount);
-        $htmlMode.on('input', updateCharCount);
 
         $editor.on('keydown', function(e){ if(e.key==='Enter'){ const sel = window.getSelection(); if(sel.rangeCount>0){ const node = sel.anchorNode; const parent = node.nodeType===3 ? node.parentNode : node; if($(parent).closest('pre, blockquote').length){ e.preventDefault(); execCommand('insertLineBreak') } } return } if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='b'){ e.preventDefault(); execCommand('bold') } if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='i'){ e.preventDefault(); execCommand('italic') } if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='u'){ e.preventDefault(); execCommand('underline') } });
 
         function updateToolbarState(){ const cmds=['bold','italic','underline','insertUnorderedList','insertOrderedList']; cmds.forEach(c=>{ try{ if(document.queryCommandState(c)){ $(`.toolbar-btn[data-format="${c}"]`).addClass('active') } else { $(`.toolbar-btn[data-format="${c}"]`).removeClass('active') } }catch(e){} }) }
         document.addEventListener('selectionchange', updateToolbarState); $editor.on('mouseup keyup', updateToolbarState);
 
-        // 에디터 클릭 시 PRE 태그에만 복사 버튼 추가
-        $editor.on('click', function(){ 
-            if(!isProcessingCommand){ 
-                setTimeout(()=>{ 
-                    $(this).find('pre').each(function(){ 
-                        addCopyButton(this) 
-                    }) 
-                },10) 
-            } 
-        });
-        
+        $editor.on('click', function(){ if(!isProcessingCommand){ setTimeout(()=>{ $(this).find('pre').each(function(){ addCopyButton(this) }) },10) } });
         $editor.focus();
     </script>
 </body>
