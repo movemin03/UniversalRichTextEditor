@@ -3,476 +3,1540 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <title>유니버셜 텍스트 에디터 (v0.8)</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>thinkgood 리치 텍스트 에디터</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
     <style>
-        * { font-family: 'Noto Sans KR', sans-serif; -webkit-font-smoothing: antialiased; }
-        html, body { height: 100%; margin: 0; padding: 0; }
-        :root { --editor-border:#D1D5DB; --editor-bg:#F3F4F6; --editor-border-blue:#3B82F6; --toolbar-gap:0.75rem; }
-        .editor-area { outline:none; resize:none; line-height:160% !important; font-size:16px; }
-        .editor-area:empty:before { content: attr(data-placeholder); color:#999; }
-        .editor-area .indent-level-1{padding-left:40px!important}.editor-area .indent-level-2{padding-left:80px!important}.editor-area .indent-level-3{padding-left:120px!important}.editor-area .indent-level-4{padding-left:160px!important}.editor-area .indent-level-5{padding-left:200px!important}.editor-area .indent-level-6{padding-left:240px!important}
-        .editor-area *{ line-height:160%!important; font-size:16px }
-        .editor-area p{ margin:0!important; padding:0!important; line-height:160%!important; font-size:16px!important }
-        .editor-area h1{ font-size:32px!important; font-weight:bold!important; line-height:160%!important; margin:0!important; padding:20px 0 8px 0!important }
-        .editor-area h2{ font-size:24px!important; font-weight:bold!important; line-height:160%!important; margin:0!important; padding:16px 0 4px 0!important }
-        .editor-area h3{ font-size:18px!important; font-weight:bold!important; line-height:160%!important; margin:0!important; padding:12px 0 4px 0!important }
-        .editor-area ul,.editor-area ol{ margin:0!important; padding-left:0!important; list-style-position:inside!important }
-        .editor-area ul{ list-style-type:disc } .editor-area ol{ list-style-type:decimal }
-        .editor-area li{ margin:0!important; padding:0!important; line-height:160%!important; font-size:16px!important }
-        .editor-area ul[style*="text-align: center"], .editor-area ol[style*="text-align: center"], .editor-area p[style*="text-align: center"]{ text-align:center!important }
-        .editor-area ul[style*="text-align: right"], .editor-area ol[style*="text-align: right"], .editor-area p[style*="text-align: right"]{ text-align:right!important }
-        .editor-area blockquote{ margin:0!important; padding:16px 20px 16px 64px!important; line-height:160%!important; font-size:16px!important; border-left:4px solid #0078ff!important; background:#f8f9fa!important; color:#555!important; position:relative }
-        .editor-area pre{ margin:0!important; padding:16px!important; overflow-x:auto!important; font-size:16px!important; line-height:160%!important; background:#f5f5f5!important; border:1px solid #e0e0e0!important; border-radius:6px!important; position:relative; white-space:pre-wrap!important; word-wrap:break-word!important; padding-top:40px!important }
-        .editor-area pre .copy-code-btn{ position:absolute; top:8px; right:8px; background:#9CA3AF; color:#fff; border:none; border-radius:4px; padding:6px 12px; cursor:pointer; font-size:12px; transition:background .2s }
-        .editor-area pre .copy-code-btn:hover{ background:#6B7280 }
-        .toolbar-btn,.toolbar-select{ background:var(--editor-bg); border:2px solid var(--editor-border); border-radius:.375rem; padding:.5rem .75rem; cursor:pointer; font-size:.875rem; font-weight:500; transition:all .2s; display:inline-flex; align-items:center; gap:var(--toolbar-gap); height:40px; user-select:none }
-        .toolbar-btn:hover{ background:#E5E7EB } .toolbar-btn.active{ background:var(--editor-border-blue); color:#fff; border-color:var(--editor-border-blue) }
-        .font-size-input{ width:70px; height:40px; padding:8px 12px; border:2px solid var(--editor-border); border-radius:4px; font-size:13px; text-align:center; background:var(--editor-bg) }
-        .font-size-input:focus{ outline:none; border-color:var(--editor-border-blue); background:#fff }
-        .font-size-spinner-btn{ width:24px; height:19px; padding:0; border:1px solid var(--editor-border); background:var(--editor-bg); cursor:pointer; font-size:10px; display:flex; align-items:center; justify-content:center }
-        .font-size-spinner-up{ border-radius:4px 4px 0 0; border-bottom:none }
-        .font-size-spinner-down{ border-radius:0 0 4px 4px; border-top:none }
-        .color-picker-input{ width:44px; height:40px; padding:0; border:2px solid var(--editor-border); border-radius:4px; cursor:pointer; background:var(--editor-bg) }
-        .color-picker-input:focus{ outline:none; border-color:var(--editor-border-blue) }
-        .color-btn{ position:relative }
-        .color-swatch{ width:20px; height:20px; border-radius:3px; border:2px solid rgba(0,0,0,0.2); display:inline-block }
-        .color-section{ display:flex; flex-direction:column; gap:8px }
-        .color-label{ font-size:12px; font-weight:600; color:#374151; text-transform:uppercase; letter-spacing:0.5px }
-        .color-picker-wrapper{ display:flex; align-items:center; gap:8px; flex:1; padding:12px; border:1px solid #d1d5db; border-radius:6px; background:#f9fafb }
-        .mobile-color-input{ width:50px; height:50px; padding:2px; border:2px solid #d1d5db; border-radius:6px; cursor:pointer }
-        .color-hex-text{ font-size:14px; font-weight:500; color:#374151; min-width:60px; text-align:center }
-        .mode-textarea{ outline:none; resize:none; line-height:160% !important; font-size:16px; padding:16px; border:none; font-family:'Courier New', monospace; width:100%; height:100%; background:#fff; overflow-y:auto; overflow-x:auto; }
-        .mode-textarea:disabled{ background:#f9fafb; color:#6b7280; cursor:not-allowed; }
-        .compat-editor-preview { outline:none; resize:none; line-height:160% !important; font-size:16px; padding:16px; border:none; width:100%; height:100%; background:#fff; overflow-y:auto; overflow-x:hidden; user-select:none; }
-        .editor-container { display:flex; flex-direction:column; flex:1; overflow:hidden; background:#fff; }
-        .editor-content { flex:1; overflow-y:auto; overflow-x:hidden; }
-        .mode-tabs{ display:flex; gap:0; border-bottom:2px solid #d1d5db; background:#fff; flex-shrink:0; overflow-x:auto; }
-        .mode-tab{ padding:12px 20px; cursor:pointer; font-size:14px; font-weight:500; color:#6b7280; border:none; background:transparent; position:relative; transition:color 0.2s; white-space:nowrap; }
-        .mode-tab:hover{ color:#374151 }
-        .mode-tab.active{ color:var(--editor-border-blue); }
-        .mode-tab.active::after{ content:''; position:absolute; bottom:-2px; left:0; right:0; height:2px; background:var(--editor-border-blue) }
-        .status-info{ display:flex; justify-content:space-between; align-items:center; padding:8px 16px; font-size:12px; color:#6b7280; background:#fff; flex-shrink:0; border-top:1px solid #d1d5db; }
-        /* 스크롤바 스타일 */
-        .editor-content::-webkit-scrollbar, .mode-textarea::-webkit-scrollbar, .compat-editor-preview::-webkit-scrollbar { width:8px; }
-        .editor-content::-webkit-scrollbar-track, .mode-textarea::-webkit-scrollbar-track, .compat-editor-preview::-webkit-scrollbar-track { background:#f1f5f9; }
-        .editor-content::-webkit-scrollbar-thumb, .mode-textarea::-webkit-scrollbar-thumb, .compat-editor-preview::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:4px; }
-        .editor-content::-webkit-scrollbar-thumb:hover, .mode-textarea::-webkit-scrollbar-thumb:hover, .compat-editor-preview::-webkit-scrollbar-thumb:hover { background:#94a3b8; }
-        @media (max-width:768px){ .toolbar-btn,.toolbar-select{ height:auto; padding:12px 14px } .font-size-input{ width:60px; height:48px } .color-picker-input{ width:48px; height:48px } .mode-tab{ padding:10px 14px; font-size:12px; } }
+        /* ===== Design Tokens (from DesignTone.md) ===== */
+        :root {
+            /* Brand */
+            --brand-primary: #EC1B1B;
+            --brand-primary-hover: #D61818;
+            --brand-primary-pressed: #B81515;
+            --brand-primary-soft: rgba(236,27,27,0.08);
+            --brand-secondary: #111111;
+
+            /* Neutral (warm, red-tinted) */
+            --n-0: #FFFFFF;
+            --n-50: #FFFCFC;
+            --n-100: #F6F2F2;
+            --n-200: #E9E2E2;
+            --n-300: #D4CECE;
+            --n-400: #B5ABAB;
+            --n-500: #8C8181;
+            --n-700: #5B5252;
+            --n-900: #1B1717;
+
+            /* Semantic */
+            --state-info: #1C6AE4;
+            --state-info-soft: #E7F0FD;
+
+            /* Surface / Role */
+            --bg-page: var(--n-50);
+            --bg-card: var(--n-0);
+            --bg-sunken: var(--n-100);
+            --fg-default: var(--n-900);
+            --fg-muted: var(--n-500);
+            --fg-subtle: var(--n-400);
+            --border-default: var(--n-200);
+            --border-strong: var(--n-300);
+            --border-focus: var(--brand-primary);
+
+            /* Shadows */
+            --sh-0: none;
+            --sh-1: 0 1px 2px rgba(27,23,23,0.04), 0 1px 1px rgba(27,23,23,0.02);
+            --sh-2: 0 4px 12px rgba(27,23,23,0.06), 0 1px 2px rgba(27,23,23,0.04);
+            --sh-3: 0 12px 32px rgba(27,23,23,0.10), 0 2px 6px rgba(27,23,23,0.04);
+            --sh-focus: 0 0 0 3px rgba(236,27,27,0.30);
+
+            /* Radius */
+            --r-xs: 4px;
+            --r-sm: 6px;
+            --r-md: 8px;
+            --r-lg: 12px;
+            --r-xl: 16px;
+
+            /* Motion */
+            --dur-fast: 120ms;
+            --dur-base: 180ms;
+            --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+
+            /* Spacing */
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 12px;
+            --space-4: 16px;
+            --space-5: 20px;
+            --space-6: 24px;
+            --space-8: 32px;
+
+            /* Typography */
+            --font-family: 'Pretendard', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        /* ===== Reset & Base ===== */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body {
+            height: 100%;
+            font-family: var(--font-family);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background: var(--bg-page);
+            color: var(--fg-default);
+        }
+        body { display: flex; flex-direction: column; }
+
+        /* ===== Header ===== */
+        .app-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--space-3) var(--space-4);
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-default);
+            flex-shrink: 0;
+        }
+        .app-header h1 {
+            font-size: 20px;
+            line-height: 28px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            color: var(--fg-default);
+        }
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+        }
+        .char-stats {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+            font-size: 13px;
+            line-height: 20px;
+            font-weight: 500;
+            color: var(--fg-muted);
+        }
+        .char-stats .stat-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-1);
+            white-space: nowrap;
+        }
+        .char-stats .stat-value {
+            color: var(--fg-default);
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+        }
+        .char-stats .stat-divider {
+            width: 1px;
+            height: 12px;
+            background: var(--border-default);
+        }
+
+        /* ===== Toolbar ===== */
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: var(--space-2);
+            padding: var(--space-2) var(--space-4);
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-default);
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .toolbar-divider {
+            width: 1px;
+            height: 24px;
+            background: var(--border-default);
+            margin: 0 var(--space-1);
+        }
+        .toolbar-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-1);
+            height: 36px;
+            padding: 0 var(--space-3);
+            background: var(--bg-sunken);
+            border: 1px solid var(--border-default);
+            border-radius: var(--r-sm);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            font-family: var(--font-family);
+            color: var(--fg-default);
+            transition: all var(--dur-fast) var(--ease-standard);
+            user-select: none;
+            white-space: nowrap;
+        }
+        .toolbar-btn:hover {
+            background: var(--n-200);
+            border-color: var(--border-strong);
+        }
+        .toolbar-btn.active {
+            background: var(--brand-primary);
+            color: var(--n-0);
+            border-color: var(--brand-primary);
+        }
+        .toolbar-btn.active:hover {
+            background: var(--brand-primary-hover);
+        }
+        .toolbar-btn i { font-size: 13px; }
+        .toolbar-btn .btn-label { font-size: 13px; }
+
+        .toolbar-select {
+            height: 36px;
+            padding: 0 var(--space-3);
+            background: var(--bg-sunken);
+            border: 1px solid var(--border-default);
+            border-radius: var(--r-sm);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            font-family: var(--font-family);
+            color: var(--fg-default);
+            transition: border-color var(--dur-fast) var(--ease-standard);
+        }
+        .toolbar-select:hover { border-color: var(--border-strong); }
+        .toolbar-select:focus { outline: none; border-color: var(--border-focus); box-shadow: var(--sh-focus); }
+
+        .font-size-group {
+            display: flex;
+            align-items: center;
+            gap: var(--space-1);
+        }
+        .font-size-input {
+            width: 56px;
+            height: 36px;
+            padding: 0 var(--space-2);
+            border: 1px solid var(--border-default);
+            border-radius: var(--r-sm);
+            font-size: 14px;
+            font-weight: 500;
+            font-family: var(--font-family);
+            text-align: center;
+            background: var(--bg-sunken);
+            color: var(--fg-default);
+            transition: border-color var(--dur-fast) var(--ease-standard);
+        }
+        .font-size-input:focus { outline: none; border-color: var(--border-focus); box-shadow: var(--sh-focus); background: var(--bg-card); }
+        .font-size-unit { font-size: 12px; color: var(--fg-muted); font-weight: 500; }
+
+        .font-size-spinner {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+        .font-size-spinner-btn {
+            width: 20px;
+            height: 17px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border-default);
+            background: var(--bg-sunken);
+            cursor: pointer;
+            font-size: 8px;
+            color: var(--fg-muted);
+            transition: background var(--dur-fast);
+        }
+        .font-size-spinner-btn:hover { background: var(--n-200); color: var(--fg-default); }
+        .font-size-spinner-up { border-radius: var(--r-xs) var(--r-xs) 0 0; border-bottom: none; }
+        .font-size-spinner-down { border-radius: 0 0 var(--r-xs) var(--r-xs); }
+
+        .color-picker-input {
+            width: 36px;
+            height: 36px;
+            padding: 2px;
+            border: 1px solid var(--border-default);
+            border-radius: var(--r-sm);
+            cursor: pointer;
+            background: var(--bg-sunken);
+            transition: border-color var(--dur-fast);
+        }
+        .color-picker-input:hover { border-color: var(--border-strong); }
+        .color-picker-input:focus { outline: none; border-color: var(--border-focus); }
+
+        /* ===== Editor Container ===== */
+        .editor-container {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            overflow: hidden;
+            background: var(--bg-card);
+        }
+        .editor-content {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        /* ===== Editor Area (contenteditable) ===== */
+        .editor-area {
+            outline: none;
+            resize: none;
+            min-height: 100%;
+            padding: var(--space-6);
+            font-size: 16px;
+            line-height: 24px;
+            font-weight: 400;
+            color: var(--fg-default);
+        }
+        .editor-area:empty::before {
+            content: attr(data-placeholder);
+            color: var(--fg-subtle);
+            pointer-events: none;
+        }
+
+        /* Indent levels */
+        .editor-area .indent-level-1 { padding-left: 40px !important; }
+        .editor-area .indent-level-2 { padding-left: 80px !important; }
+        .editor-area .indent-level-3 { padding-left: 120px !important; }
+        .editor-area .indent-level-4 { padding-left: 160px !important; }
+        .editor-area .indent-level-5 { padding-left: 200px !important; }
+        .editor-area .indent-level-6 { padding-left: 240px !important; }
+
+        /* Typography inside editor — aligned to DesignTone.md */
+        .editor-area p {
+            margin: 0;
+            padding: 0;
+            font-size: 16px;
+            line-height: 24px;
+            font-weight: 400;
+        }
+        .editor-area h1 {
+            font-size: 32px;
+            line-height: 40px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin: 0;
+            padding: var(--space-6) 0 var(--space-2) 0;
+            color: var(--fg-default);
+        }
+        .editor-area h2 {
+            font-size: 24px;
+            line-height: 32px;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            margin: 0;
+            padding: var(--space-5) 0 var(--space-1) 0;
+            color: var(--fg-default);
+        }
+        .editor-area h3 {
+            font-size: 20px;
+            line-height: 28px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            margin: 0;
+            padding: var(--space-4) 0 var(--space-1) 0;
+            color: var(--fg-default);
+        }
+        .editor-area ul, .editor-area ol {
+            margin: var(--space-2) 0;
+            padding-left: var(--space-6);
+        }
+        .editor-area ul { list-style-type: disc; }
+        .editor-area ol { list-style-type: decimal; }
+        .editor-area li {
+            margin: var(--space-1) 0;
+            font-size: 16px;
+            line-height: 24px;
+        }
+
+        /* Blockquote — brand accent left border, sunken bg */
+        .editor-area blockquote {
+            margin: var(--space-3) 0;
+            padding: var(--space-4) var(--space-5);
+            border: none;
+            background: var(--bg-sunken);
+            border-radius: var(--r-lg);
+            color: var(--n-700);
+            font-size: 16px;
+            line-height: 24px;
+            position: relative;
+        }
+
+        /* Code block — sunken bg, monospace */
+        .editor-area pre {
+            margin: var(--space-3) 0;
+            padding: var(--space-5);
+            padding-top: 44px;
+            background: var(--n-900);
+            color: var(--n-100);
+            border: 1px solid var(--n-700);
+            border-radius: var(--r-md);
+            font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+            font-size: 14px;
+            line-height: 22px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            position: relative;
+        }
+        .editor-area pre .copy-code-btn {
+            position: absolute;
+            top: var(--space-2);
+            right: var(--space-2);
+            background: var(--n-700);
+            color: var(--n-200);
+            border: none;
+            border-radius: var(--r-xs);
+            padding: var(--space-1) var(--space-2);
+            cursor: pointer;
+            font-size: 12px;
+            font-family: var(--font-family);
+            font-weight: 500;
+            transition: background var(--dur-fast);
+            display: flex;
+            align-items: center;
+            gap: var(--space-1);
+        }
+        .editor-area pre .copy-code-btn:hover { background: var(--n-500); }
+
+        /* Alignment helpers */
+        .editor-area [style*="text-align: center"] { text-align: center !important; }
+        .editor-area [style*="text-align: right"] { text-align: right !important; }
+
+        /* ===== Mode Textarea (HTML / Markdown) ===== */
+        .mode-textarea {
+            outline: none;
+            resize: none;
+            font-size: 14px;
+            line-height: 22px;
+            padding: var(--space-4);
+            border: none;
+            font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-card);
+            color: var(--fg-default);
+            overflow-y: auto;
+            overflow-x: auto;
+        }
+        .mode-textarea:focus { outline: none; }
+
+        /* ===== Mode Tabs ===== */
+        .mode-tabs {
+            display: flex;
+            gap: 0;
+            border-top: 1px solid var(--border-default);
+            background: var(--bg-card);
+            flex-shrink: 0;
+            overflow-x: auto;
+        }
+        .mode-tab {
+            padding: var(--space-3) var(--space-5);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--fg-muted);
+            border: none;
+            background: transparent;
+            position: relative;
+            transition: color var(--dur-fast) var(--ease-standard);
+            white-space: nowrap;
+            font-family: var(--font-family);
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+        .mode-tab:hover { color: var(--fg-default); }
+        .mode-tab.active { color: var(--brand-primary); }
+        .mode-tab.active::after {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--brand-primary);
+        }
+
+        /* ===== Status Bar ===== */
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-2) var(--space-4);
+            font-size: 12px;
+            line-height: 16px;
+            font-weight: 500;
+            color: var(--fg-muted);
+            background: var(--bg-card);
+            flex-shrink: 0;
+            border-top: 1px solid var(--border-default);
+        }
+
+        /* ===== Bottom Sheet (mobile) ===== */
+        .bottom-sheet-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(27,23,23,0.48);
+            z-index: 199;
+        }
+        .bottom-sheet-overlay.open { display: block; }
+
+        .bottom-sheet {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-card);
+            border-top: 1px solid var(--border-default);
+            border-radius: var(--r-xl) var(--r-xl) 0 0;
+            padding: var(--space-5);
+            z-index: 200;
+            max-height: 75vh;
+            overflow-y: auto;
+            transform: translateY(100%);
+            transition: transform var(--dur-base) var(--ease-standard);
+            box-shadow: var(--sh-3);
+        }
+        .bottom-sheet.open { transform: translateY(0); }
+
+        .bottom-sheet-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-4);
+            padding-bottom: var(--space-3);
+            border-bottom: 1px solid var(--border-default);
+        }
+        .bottom-sheet-header span {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--fg-default);
+        }
+        .bottom-sheet-close {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: none;
+            border: none;
+            border-radius: var(--r-md);
+            cursor: pointer;
+            color: var(--fg-muted);
+            font-size: 16px;
+            transition: background var(--dur-fast);
+        }
+        .bottom-sheet-close:hover { background: var(--bg-sunken); }
+
+        .bs-section { margin-bottom: var(--space-5); }
+        .bs-section:last-child { margin-bottom: 0; }
+        .bs-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--fg-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: var(--space-3);
+        }
+        .bs-row {
+            display: flex;
+            gap: var(--space-2);
+        }
+        .bs-btn {
+            flex: 1;
+            padding: var(--space-3);
+            font-size: 14px;
+            font-weight: 500;
+            font-family: var(--font-family);
+            border: 1px solid var(--border-default);
+            border-radius: var(--r-md);
+            background: var(--bg-card);
+            color: var(--fg-default);
+            cursor: pointer;
+            text-align: center;
+            transition: all var(--dur-fast);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-2);
+        }
+        .bs-btn:hover { background: var(--bg-sunken); border-color: var(--border-strong); }
+        .bs-btn.active { background: var(--brand-primary-soft); border-color: var(--brand-primary); color: var(--brand-primary); }
+
+        .bs-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-2);
+        }
+
+        .bs-color-row {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            padding: var(--space-3);
+            border: 1px solid var(--border-default);
+            border-radius: var(--r-md);
+            background: var(--bg-sunken);
+        }
+        .bs-color-input {
+            width: 44px;
+            height: 44px;
+            padding: 2px;
+            border: 1px solid var(--border-default);
+            border-radius: var(--r-sm);
+            cursor: pointer;
+        }
+        .bs-color-hex {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--fg-default);
+            font-family: 'SF Mono', monospace;
+        }
+
+        /* ===== Scrollbar ===== */
+        .editor-content::-webkit-scrollbar,
+        .mode-textarea::-webkit-scrollbar { width: 8px; }
+        .editor-content::-webkit-scrollbar-track,
+        .mode-textarea::-webkit-scrollbar-track { background: var(--bg-sunken); }
+        .editor-content::-webkit-scrollbar-thumb,
+        .mode-textarea::-webkit-scrollbar-thumb { background: var(--n-300); border-radius: var(--r-xs); }
+        .editor-content::-webkit-scrollbar-thumb:hover,
+        .mode-textarea::-webkit-scrollbar-thumb:hover { background: var(--n-400); }
+
+        /* ===== Responsive ===== */
+        @media (max-width: 768px) {
+            .toolbar { padding: var(--space-2) var(--space-3); gap: var(--space-1); }
+            .toolbar-btn { height: 40px; padding: 0 var(--space-3); }
+            .toolbar-btn .btn-label { display: none; }
+            .desktop-only { display: none !important; }
+            .editor-area { padding: var(--space-4); }
+            .app-header { flex-direction: column; align-items: flex-start; gap: var(--space-2); padding: var(--space-3) var(--space-4); }
+            .app-header h1 { font-size: 16px; line-height: 24px; }
+            .header-right { width: 100%; }
+            .char-stats { font-size: 12px; gap: var(--space-3); }
+            .editor-area h1 { font-size: 28px; line-height: 36px; }
+            .editor-area h2 { font-size: 22px; line-height: 28px; }
+            .editor-area h3 { font-size: 18px; line-height: 24px; }
+            .mode-tab { padding: var(--space-2) var(--space-3); font-size: 13px; }
+        }
+        @media (min-width: 769px) {
+            .mobile-only { display: none !important; }
+        }
+        @media (max-width: 480px) {
+            .toolbar-btn { height: 36px; padding: 0 var(--space-2); }
+            .font-size-group { display: none; }
+        }
     </style>
 </head>
-<body class="bg-gray-50 flex flex-col h-screen">
-    <div class="bg-white border-b border-gray-300 flex items-center justify-between px-4 py-3">
-        <h1 class="text-lg md:text-xl font-bold text-gray-900">유니버셜 텍스트 에디터</h1>
-        <div class="text-xs md:text-sm text-gray-600">글자 수: <span id="charCount" class="font-bold">0</span>자</div>
-    </div>
-
-    <div class="toolbar sticky top-0 z-100 bg-gray-50 border-b border-gray-300 px-3 py-3 flex flex-wrap items-center overflow-x-auto" style="gap: var(--toolbar-gap);">
-        <button class="toolbar-btn" data-format="bold" title="굵게"><i class="fas fa-bold"></i><span class="hidden md:inline text-sm">굵게</span></button>
-        <button class="toolbar-btn" data-format="italic" title="기울임"><i class="fas fa-italic"></i><span class="hidden md:inline text-sm">기울임</span></button>
-        <button class="toolbar-btn" data-format="underline" title="밑줄"><i class="fas fa-underline"></i><span class="hidden md:inline text-sm">밑줄</span></button>
-        <div class="w-px h-8 bg-gray-400 mx-0.5 hidden md:block"></div>
-        <button class="toolbar-btn color-btn hidden md:inline-flex" id="textColorBtn" title="글자색"><i class="fas fa-palette"></i><span class="hidden md:inline text-sm">글자색</span></button>
-        <input type="color" id="textColorPicker" class="color-picker-input hidden md:inline-block" value="#000000">
-        <button class="toolbar-btn color-btn hidden md:inline-flex" id="bgColorBtn" title="배경색"><i class="fas fa-highlighter"></i><span class="hidden md:inline text-sm">배경색</span></button>
-        <input type="color" id="bgColorPicker" class="color-picker-input hidden md:inline-block" value="#FFFF00">
-        <div class="w-px h-8 bg-gray-400 mx-0.5 hidden md:block"></div>
-        <button class="toolbar-btn" data-format="insertUnorderedList" title="글머리"><i class="fas fa-list-ul"></i><span class="hidden md:inline text-sm">• 목록</span></button>
-        <button class="toolbar-btn" data-format="insertOrderedList" title="번호"><i class="fas fa-list-ol"></i><span class="hidden md:inline text-sm">1. 번호</span></button>
-        <div class="w-px h-8 bg-gray-400 mx-0.5 hidden md:block"></div>
-        <button class="toolbar-btn hidden md:inline-flex" id="blockquoteBtn" title="인용문"><i class="fas fa-quote-left"></i><span>인용문</span></button>
-        <button class="toolbar-btn hidden md:inline-flex" id="codeBtn" title="코드"><i class="fas fa-code"></i><span>코드</span></button>
-        <div class="w-px h-8 bg-gray-400 mx-0.5 hidden md:block"></div>
-        <div class="flex items-center" style="gap: 4px;">
-            <input type="number" id="fontSizeInput" class="font-size-input" value="16" min="14" max="64"><span class="text-xs text-gray-600 hidden md:inline">px</span>
-            <div class="flex flex-col" style="gap: 0;">
-                <button id="fontSizeUp" class="font-size-spinner-btn font-size-spinner-up"><i class="fas fa-chevron-up text-xs"></i></button>
-                <button id="fontSizeDown" class="font-size-spinner-btn font-size-spinner-down"><i class="fas fa-chevron-down text-xs"></i></button>
+<body>
+    <!-- Header -->
+    <header class="app-header">
+        <h1>리치 텍스트 에디터</h1>
+        <div class="header-right">
+            <div class="char-stats">
+                <span class="stat-item">공백포함 <span class="stat-value" id="countWithSpaces">0</span></span>
+                <span class="stat-divider"></span>
+                <span class="stat-item">공백제외 <span class="stat-value" id="countNoSpaces">0</span></span>
+                <span class="stat-divider"></span>
+                <span class="stat-item">단어 <span class="stat-value" id="countWords">0</span></span>
             </div>
         </div>
-        <div class="w-px h-8 bg-gray-400 mx-0.5 hidden md:block"></div>
-        <button class="toolbar-btn hidden md:inline-flex" data-format="justifyLeft" title="왼쪽"><i class="fas fa-align-left"></i><span>왼쪽</span></button>
-        <button class="toolbar-btn hidden md:inline-flex" data-format="justifyCenter" title="가운데"><i class="fas fa-align-center"></i><span>가운데</span></button>
-        <button class="toolbar-btn hidden md:inline-flex" data-format="justifyRight" title="오른쪽"><i class="fas fa-align-right"></i><span>오른쪽</span></button>
-        <div class="w-px h-8 bg-gray-400 mx-0.5 hidden md:block"></div>
-        <select id="indentSelect" class="toolbar-select hidden md:inline-block" title="들여쓰기">
-            <option value="">들여쓰기</option><option value="0">기본</option><option value="1">1단</option><option value="2">2단</option><option value="3">3단</option><option value="4">4단</option><option value="5">5단</option><option value="6">6단</option>
+    </header>
+
+    <!-- Toolbar -->
+    <div class="toolbar" id="toolbar">
+        <button class="toolbar-btn" data-format="bold" title="굵게 (Ctrl+B)"><i class="fas fa-bold"></i><span class="btn-label desktop-only">굵게</span></button>
+        <button class="toolbar-btn" data-format="italic" title="기울임 (Ctrl+I)"><i class="fas fa-italic"></i><span class="btn-label desktop-only">기울임</span></button>
+        <button class="toolbar-btn" data-format="underline" title="밑줄 (Ctrl+U)"><i class="fas fa-underline"></i><span class="btn-label desktop-only">밑줄</span></button>
+
+        <div class="toolbar-divider desktop-only"></div>
+
+        <button class="toolbar-btn desktop-only" id="textColorBtn" title="글자색"><i class="fas fa-palette"></i><span class="btn-label">글자색</span></button>
+        <input type="color" id="textColorPicker" class="color-picker-input desktop-only" value="#1B1717">
+        <button class="toolbar-btn desktop-only" id="bgColorBtn" title="배경색"><i class="fas fa-highlighter"></i><span class="btn-label">배경색</span></button>
+        <input type="color" id="bgColorPicker" class="color-picker-input desktop-only" value="#FFFF00">
+
+        <div class="toolbar-divider desktop-only"></div>
+
+        <button class="toolbar-btn" data-format="insertUnorderedList" title="글머리 목록"><i class="fas fa-list-ul"></i><span class="btn-label desktop-only">목록</span></button>
+        <button class="toolbar-btn" data-format="insertOrderedList" title="번호 목록"><i class="fas fa-list-ol"></i><span class="btn-label desktop-only">번호</span></button>
+
+        <div class="toolbar-divider desktop-only"></div>
+
+        <button class="toolbar-btn desktop-only" id="blockquoteBtn" title="인용문"><i class="fas fa-quote-left"></i><span class="btn-label">인용문</span></button>
+        <button class="toolbar-btn desktop-only" id="codeBtn" title="코드 블록"><i class="fas fa-code"></i><span class="btn-label">코드</span></button>
+
+        <div class="toolbar-divider desktop-only"></div>
+
+        <div class="font-size-group desktop-only">
+            <input type="number" id="fontSizeInput" class="font-size-input" value="16" min="14" max="64">
+            <span class="font-size-unit">px</span>
+            <div class="font-size-spinner">
+                <button id="fontSizeUp" class="font-size-spinner-btn font-size-spinner-up"><i class="fas fa-chevron-up"></i></button>
+                <button id="fontSizeDown" class="font-size-spinner-btn font-size-spinner-down"><i class="fas fa-chevron-down"></i></button>
+            </div>
+        </div>
+
+        <div class="toolbar-divider desktop-only"></div>
+
+        <button class="toolbar-btn desktop-only" data-format="justifyLeft" title="왼쪽 정렬"><i class="fas fa-align-left"></i></button>
+        <button class="toolbar-btn desktop-only" data-format="justifyCenter" title="가운데 정렬"><i class="fas fa-align-center"></i></button>
+        <button class="toolbar-btn desktop-only" data-format="justifyRight" title="오른쪽 정렬"><i class="fas fa-align-right"></i></button>
+
+        <div class="toolbar-divider desktop-only"></div>
+
+        <select id="indentSelect" class="toolbar-select desktop-only" title="들여쓰기">
+            <option value="">들여쓰기</option>
+            <option value="0">기본</option>
+            <option value="1">1단</option>
+            <option value="2">2단</option>
+            <option value="3">3단</option>
+            <option value="4">4단</option>
         </select>
-        <select id="styleSelect" class="toolbar-select hidden md:inline-block" title="스타일">
-            <option value="">스타일</option><option value="h1">큰 제목</option><option value="h2">중간 제목</option><option value="h3">작은 제목</option><option value="p">본문</option>
+        <select id="styleSelect" class="toolbar-select desktop-only" title="스타일">
+            <option value="">스타일</option>
+            <option value="h1">큰 제목 (H1)</option>
+            <option value="h2">중간 제목 (H2)</option>
+            <option value="h3">작은 제목 (H3)</option>
+            <option value="p">본문</option>
         </select>
-        <button class="toolbar-btn md:hidden ml-auto" id="moreBtn"><i class="fas fa-ellipsis-v"></i></button>
+        <select id="fontFamilySelect" class="toolbar-select desktop-only" title="글꼴">
+            <option value="Pretendard">Pretendard</option>
+            <option value="Noto Sans KR">Noto Sans KR</option>
+            <option value="Nanum Gothic">나눔고딕</option>
+        </select>
+
+        <!-- Mobile more button -->
+        <button class="toolbar-btn mobile-only" id="moreBtn" style="margin-left:auto;" title="추가 서식"><i class="fas fa-ellipsis-v"></i></button>
     </div>
 
+    <!-- Editor Container -->
     <div class="editor-container">
         <div class="editor-content">
-            <div class="editor-area p-4 md:p-8" contenteditable="true" id="editor" data-placeholder="여기에 내용을 입력하세요..."></div>
-            <textarea id="htmlMode" class="mode-textarea" placeholder="HTML 코드..." style="display:none;"></textarea>
-            <div id="compatEditorMode" class="compat-editor-preview" style="display:none;"></div>
-            <textarea id="compatHtmlMode" class="mode-textarea" placeholder="네이버 호환 HTML..." style="display:none;" readonly></textarea>
+            <div class="editor-area" contenteditable="true" id="editor" data-placeholder="여기에 내용을 입력하세요..."></div>
+            <textarea id="htmlMode" class="mode-textarea" placeholder="HTML 코드를 직접 편집하세요..." style="display:none;"></textarea>
+            <textarea id="markdownMode" class="mode-textarea" placeholder="마크다운으로 변환된 내용입니다..." style="display:none;" readonly></textarea>
         </div>
 
         <div class="mode-tabs">
-            <button class="mode-tab active" data-mode="editor"><i class="fas fa-pen"></i> 에디터</button>
+            <button class="mode-tab active" data-mode="editor"><i class="fas fa-pen-nib"></i> 에디터</button>
             <button class="mode-tab" data-mode="html"><i class="fas fa-code"></i> HTML</button>
-            <button class="mode-tab" data-mode="compatEditor"><i class="fas fa-eye"></i> 호환 에디터</button>
-            <button class="mode-tab" data-mode="compatHtml"><i class="fas fa-code"></i> 호환 HTML</button>
+            <button class="mode-tab" data-mode="markdown"><i class="fas fa-hashtag"></i> Markdown</button>
         </div>
-        <div class="status-info">
+        <div class="status-bar">
             <span id="modeLabel">에디터 모드</span>
             <span id="statusText">준비 완료</span>
         </div>
     </div>
 
-    <div class="fixed bottom-0 left-0 right-0 bg-white border-t rounded-t-2xl px-4 py-4 z-200 max-h-[75vh] overflow-y-auto transform translate-y-full transition-transform" id="bottomSheet">
-        <div class="flex justify-between items-center mb-4 pb-3 border-b"><span class="font-bold">추가 서식</span><button id="closeBottomSheetBtn" class="text-xl cursor-pointer"><i class="fas fa-times"></i></button></div>
-        <div class="space-y-4">
-            <div>
-                <div class="text-sm font-bold mb-3">색상</div>
-                <div class="color-section">
+    <!-- Bottom Sheet Overlay -->
+    <div class="bottom-sheet-overlay" id="bottomSheetOverlay"></div>
+
+    <!-- Bottom Sheet (mobile extra tools) -->
+    <div class="bottom-sheet" id="bottomSheet">
+        <div class="bottom-sheet-header">
+            <span>추가 서식</span>
+            <button class="bottom-sheet-close" id="closeBottomSheetBtn"><i class="fas fa-times"></i></button>
+        </div>
+
+        <div class="bs-section">
+            <div class="bs-label">글꼴</div>
+            <div class="bs-row">
+                <button class="bs-btn" data-font="Pretendard">Pretendard</button>
+                <button class="bs-btn" data-font="Noto Sans KR">Noto Sans KR</button>
+                <button class="bs-btn" data-font="Nanum Gothic">나눔고딕</button>
+            </div>
+        </div>
+
+        <div class="bs-section">
+            <div class="bs-label">스타일</div>
+            <div class="bs-grid">
+                <button class="bs-btn" data-mobile-style="h1">H1 큰 제목</button>
+                <button class="bs-btn" data-mobile-style="h2">H2 중간</button>
+                <button class="bs-btn" data-mobile-style="h3">H3 작은</button>
+                <button class="bs-btn" data-mobile-style="p">본문</button>
+            </div>
+        </div>
+
+        <div class="bs-section">
+            <div class="bs-label">색상</div>
+            <div style="display:flex;flex-direction:column;gap:var(--space-2);">
+                <div class="bs-color-row">
+                    <input type="color" id="mobileTextColorPicker" class="bs-color-input" value="#1B1717">
                     <div>
-                        <div class="color-label">글자색</div>
-                        <div class="color-picker-wrapper">
-                            <input type="color" id="mobileTextColorPicker" class="mobile-color-input" value="#000000">
-                            <div class="color-hex-text" id="textColorHex">#000000</div>
-                        </div>
+                        <div style="font-size:12px;color:var(--fg-muted);font-weight:500;">글자색</div>
+                        <div class="bs-color-hex" id="textColorHex">#1B1717</div>
                     </div>
+                </div>
+                <div class="bs-color-row">
+                    <input type="color" id="mobileBgColorPicker" class="bs-color-input" value="#FFFF00">
                     <div>
-                        <div class="color-label">배경색</div>
-                        <div class="color-picker-wrapper">
-                            <input type="color" id="mobileBgColorPicker" class="mobile-color-input" value="#FFFF00">
-                            <div class="color-hex-text" id="bgColorHex">#FFFF00</div>
-                        </div>
+                        <div style="font-size:12px;color:var(--fg-muted);font-weight:500;">배경색</div>
+                        <div class="bs-color-hex" id="bgColorHex">#FFFF00</div>
                     </div>
                 </div>
             </div>
-            <div>
-                <div class="text-sm font-bold mb-3">정렬</div>
-                <div class="flex gap-2">
-                    <button class="align-btn flex-1 p-3 text-sm border rounded" data-format="justifyLeft"><i class="fas fa-align-left"></i> 왼쪽</button>
-                    <button class="align-btn flex-1 p-3 text-sm border rounded" data-format="justifyCenter"><i class="fas fa-align-center"></i> 중앙</button>
-                    <button class="align-btn flex-1 p-3 text-sm border rounded" data-format="justifyRight"><i class="fas fa-align-right"></i> 오른쪽</button>
-                </div>
+        </div>
+
+        <div class="bs-section">
+            <div class="bs-label">정렬</div>
+            <div class="bs-row">
+                <button class="bs-btn" data-format="justifyLeft"><i class="fas fa-align-left"></i> 왼쪽</button>
+                <button class="bs-btn" data-format="justifyCenter"><i class="fas fa-align-center"></i> 중앙</button>
+                <button class="bs-btn" data-format="justifyRight"><i class="fas fa-align-right"></i> 오른쪽</button>
             </div>
-            <div>
-                <div class="text-sm font-bold mb-3">들여쓰기</div>
-                <div class="grid grid-cols-3 gap-2">
-                    <button class="indent-btn p-3 text-sm border rounded" data-level="0">기본</button>
-                    <button class="indent-btn p-3 text-sm border rounded" data-level="1">1단</button>
-                    <button class="indent-btn p-3 text-sm border rounded" data-level="2">2단</button>
-                    <button class="indent-btn p-3 text-sm border rounded" data-level="3">3단</button>
-                    <button class="indent-btn p-3 text-sm border rounded" data-level="4">4단</button>
-                    <button class="indent-btn p-3 text-sm border rounded" data-level="5">5단</button>
-                </div>
+        </div>
+
+        <div class="bs-section">
+            <div class="bs-label">들여쓰기</div>
+            <div class="bs-grid">
+                <button class="bs-btn" data-indent="0">기본</button>
+                <button class="bs-btn" data-indent="1">1단</button>
+                <button class="bs-btn" data-indent="2">2단</button>
+                <button class="bs-btn" data-indent="3">3단</button>
+                <button class="bs-btn" data-indent="4">4단</button>
             </div>
-            <div>
-                <div class="text-sm font-bold mb-3">특수 요소</div>
-                <div class="flex gap-2">
-                    <button id="mobileBlockquoteBtn" class="flex-1 p-3 text-sm border rounded"><i class="fas fa-quote-left"></i> 인용문</button>
-                    <button id="mobileCodeBtn" class="flex-1 p-3 text-sm border rounded"><i class="fas fa-code"></i> 코드</button>
-                </div>
+        </div>
+
+        <div class="bs-section">
+            <div class="bs-label">특수 블록</div>
+            <div class="bs-row">
+                <button class="bs-btn" id="mobileBlockquoteBtn"><i class="fas fa-quote-left"></i> 인용문</button>
+                <button class="bs-btn" id="mobileCodeBtn"><i class="fas fa-code"></i> 코드</button>
             </div>
         </div>
     </div>
 
     <script>
-        const $editor = $('#editor');
-        const $htmlMode = $('#htmlMode');
-        const $compatEditorMode = $('#compatEditorMode');
-        const $compatHtmlMode = $('#compatHtmlMode');
-        const $charCount = $('#charCount');
-        const $bottomSheet = $('#bottomSheet');
-        const $fontSizeInput = $('#fontSizeInput');
-        const $textColorPicker = $('#textColorPicker');
-        const $bgColorPicker = $('#bgColorPicker');
-        const $mobileTextColorPicker = $('#mobileTextColorPicker');
-        const $mobileBgColorPicker = $('#mobileBgColorPicker');
-        const $textColorHex = $('#textColorHex');
-        const $bgColorHex = $('#bgColorHex');
-        const $modeLabel = $('#modeLabel');
+    (function () {
+        'use strict';
+
+        // ===== DOM References =====
+        const editorEl = document.getElementById('editor');
+        const htmlModeEl = document.getElementById('htmlMode');
+        const markdownModeEl = document.getElementById('markdownMode');
+        const countWithSpacesEl = document.getElementById('countWithSpaces');
+        const countNoSpacesEl = document.getElementById('countNoSpaces');
+        const countWordsEl = document.getElementById('countWords');
+        const fontFamilySelect = document.getElementById('fontFamilySelect');
+        const modeLabelEl = document.getElementById('modeLabel');
+        const statusTextEl = document.getElementById('statusText');
+        const fontSizeInput = document.getElementById('fontSizeInput');
+        const textColorPicker = document.getElementById('textColorPicker');
+        const bgColorPicker = document.getElementById('bgColorPicker');
+        const mobileTextColorPicker = document.getElementById('mobileTextColorPicker');
+        const mobileBgColorPicker = document.getElementById('mobileBgColorPicker');
+        const textColorHexEl = document.getElementById('textColorHex');
+        const bgColorHexEl = document.getElementById('bgColorHex');
+        const bottomSheet = document.getElementById('bottomSheet');
+        const bottomSheetOverlay = document.getElementById('bottomSheetOverlay');
+
         let currentFontSize = 16;
-        let isProcessingCommand = false;
         let currentMode = 'editor';
+        let savedSelection = null;
 
         const modeLabels = {
-            'editor': '에디터 모드',
-            'html': 'HTML 모드',
-            'compatEditor': '호환 에디터 (미리보기)',
-            'compatHtml': '호환 HTML (미리보기)'
+            editor: '에디터 모드',
+            html: 'HTML 모드',
+            markdown: 'Markdown 모드'
         };
 
-        function execCommand(command, value=null){ try{ document.execCommand(command,false,value) }catch(e){ console.error(`Command ${command} failed:`,e) } }
-
-        // ========== Naver Compatible HTML ==========
-        function generateNaverHTML(html) {
-            const temp = document.createElement('div');
-            temp.innerHTML = html;
-            
-            // 모든 요소에서 style, class, id 제거
-            Array.from(temp.querySelectorAll('*')).forEach(el => {
-                el.removeAttribute('style');
-                el.removeAttribute('class');
-                el.removeAttribute('id');
-            });
-            
-            let result = temp.innerHTML;
-            
-            // <p>, <div> 태그 처리 - 줄바꿈으로 변환
-            result = result.replace(/<p[^>]*>([\s\S]*?)<\/p>/g, (match, content) => {
-                const text = content.trim();
-                if (!text) return '';
-                // 내부 공백/들여쓰기 제거
-                return text.replace(/\n\s*/g, ' ').replace(/\s+/g, ' ') + '<br>';
-            });
-            
-            result = result.replace(/<div[^>]*>([\s\S]*?)<\/div>/g, (match, content) => {
-                const text = content.trim();
-                if (!text) return '';
-                return text.replace(/\n\s*/g, ' ').replace(/\s+/g, ' ') + '<br>';
-            });
-            
-            // blockquote 제거
-            result = result.replace(/<blockquote[^>]*>|<\/blockquote>/g, '');
-            
-            // 연속 br 정리 (3개 이상 → 2개)
-            result = result.replace(/<br>\s*<br>\s*<br>/g, '<br><br>');
-            
-            // 시작/끝 br 제거
-            result = result.replace(/^<br>+|<br>+$/g, '');
-            
-            return result.trim();
+        // ===== Utility: execCommand wrapper =====
+        function exec(command, value) {
+            try {
+                document.execCommand(command, false, value || null);
+            } catch (e) {
+                console.error('execCommand failed:', command, e);
+            }
         }
 
-
-        // ========== HTML Prettify ==========
-        function prettifyHTML(html) {
-            let formatted = '';
-            let indent = 0;
-            const indentStr = '  ';
-            const voidElements = ['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr'];
-
-            let temp = document.createElement('div');
-            temp.innerHTML = html;
-
-            let childNodes = Array.from(temp.childNodes);
-            for (let i = 0; i < childNodes.length; i++) {
-                const node = childNodes[i];
-                if (node.nodeType === 3 && node.textContent.trim()) {
-                    const p = document.createElement('p');
-                    p.textContent = node.textContent;
-                    temp.replaceChild(p, node);
-                }
-            }
-
-            html = temp.innerHTML;
-
-            const regex = /(<[^/>]*>)|(<\/[^>]*>)|([^<]+)/g;
-            let match;
-
-            while ((match = regex.exec(html)) !== null) {
-                const content = match[0].trim();
-                if (!content) continue;
-
-                if (content.startsWith('</')) {
-                    indent = Math.max(0, indent - 1);
-                    formatted += indentStr.repeat(indent) + content + '\n';
-                }
-                else if (content.startsWith('<') && content.endsWith('/>')) {
-                    formatted += indentStr.repeat(indent) + content + '\n';
-                }
-                else if (content.startsWith('<')) {
-                    const tagName = content.match(/<(\w+)/)?.[1]?.toLowerCase();
-                    formatted += indentStr.repeat(indent) + content + '\n';
-
-                    if (tagName && !voidElements.includes(tagName)) {
-                        indent++;
-                    }
-                }
-                else {
-                    if (content.trim()) {
-                        formatted += indentStr.repeat(indent) + content + '\n';
-                    }
-                }
-            }
-
-            return formatted.trim();
-        }
-
-        // ========== Mode switching ==========
-        function switchMode(mode){
-            if(mode === 'html'){
-                const htmlContent = $editor.html();
-                const prettified = prettifyHTML(htmlContent);
-                $htmlMode.val(prettified);
-            }
-            else if(mode === 'compatHtml'){
-                const htmlContent = $htmlMode.val();
-                const naverHTML = generateNaverHTML(htmlContent);
-                $compatHtmlMode.val(naverHTML);
-            }
-            else if(mode === 'compatEditor'){
-                const naverHTML = $compatHtmlMode.val();
-                $compatEditorMode.html(naverHTML);
-            }
-            else if(mode === 'editor'){
-                // 에디터는 항상 유지
-            }
-
-            $editor.css('display', mode === 'editor' ? 'block' : 'none');
-            $htmlMode.css('display', mode === 'html' ? 'block' : 'none');
-            $compatEditorMode.css('display', mode === 'compatEditor' ? 'block' : 'none');
-            $compatHtmlMode.css('display', mode === 'compatHtml' ? 'block' : 'none');
-
-            $(`.mode-tab`).removeClass('active');
-            $(`.mode-tab[data-mode="${mode}"]`).addClass('active');
-
-            $modeLabel.text(modeLabels[mode]);
-
-            currentMode = mode;
-            updateCharCount();
-
-            if(mode === 'editor') $editor.focus();
-            else if(mode === 'html') $htmlMode.focus();
-            else if(mode === 'compatHtml') $compatHtmlMode.focus();
-        }
-
-        $(document).on('click', '.mode-tab', function(e){
-            e.preventDefault();
-            const mode = $(this).data('mode');
-            switchMode(mode);
-        });
-
-        // ========== Selection helpers ==========
-        function placeSelectionMarkers(){
+        // ===== Selection helpers =====
+        function saveSelection() {
             const sel = window.getSelection();
-            if(!sel.rangeCount) return null;
-            const range = sel.getRangeAt(0).cloneRange();
-            const start = document.createElement('span'); start.id='__selStart'; start.style.display='inline-block'; start.style.width='0';
-            const end = document.createElement('span'); end.id='__selEnd'; end.style.display='inline-block'; end.style.width='0';
-            range.collapse(true); range.insertNode(start);
-            const sel2 = window.getSelection();
-            const r2 = sel2.getRangeAt(0).cloneRange(); r2.collapse(false); r2.insertNode(end);
-            return {startId:'__selStart', endId:'__selEnd'};
+            if (sel.rangeCount > 0) {
+                savedSelection = sel.getRangeAt(0).cloneRange();
+            }
         }
-        function restoreSelectionFromMarkers(){
+
+        function restoreSelection() {
+            if (!savedSelection) return;
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(savedSelection);
+        }
+
+        function placeSelectionMarkers() {
+            const sel = window.getSelection();
+            if (!sel.rangeCount) return null;
+            const range = sel.getRangeAt(0).cloneRange();
+            const start = document.createElement('span');
+            start.id = '__selStart';
+            start.style.display = 'inline-block';
+            start.style.width = '0';
+            const end = document.createElement('span');
+            end.id = '__selEnd';
+            end.style.display = 'inline-block';
+            end.style.width = '0';
+            range.collapse(true);
+            range.insertNode(start);
+            const sel2 = window.getSelection();
+            const r2 = sel2.getRangeAt(0).cloneRange();
+            r2.collapse(false);
+            r2.insertNode(end);
+            return { startId: '__selStart', endId: '__selEnd' };
+        }
+
+        function restoreSelectionFromMarkers() {
             const s = document.getElementById('__selStart');
             const e = document.getElementById('__selEnd');
-            if(!s || !e) return;
+            if (!s || !e) return;
             const range = document.createRange();
-            range.setStartAfter(s); range.setEndBefore(e);
-            const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+            range.setStartAfter(s);
+            range.setEndBefore(e);
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
             s.parentNode && s.parentNode.removeChild(s);
             e.parentNode && e.parentNode.removeChild(e);
         }
 
-        // ========== Node helpers ==========
-        function closestSpecial(node){ while(node && node!==$editor[0]){ if(node.tagName==='PRE') return 'PRE'; if(node.tagName==='BLOCKQUOTE') return 'BLOCKQUOTE'; node = node.parentNode } return null }
-        function getClosest(el, tags){ let n = el; while(n && n!==$editor[0]){ if(n.nodeType===1 && tags.includes(n.tagName)) return n; n = n.parentNode } return null }
-        function unwrap(el){ if(!el) return; const parent = el.parentNode; while(el.firstChild){ parent.insertBefore(el.firstChild, el) } parent.removeChild(el) }
-        function wrapRangeWith(range, tagName){
+        // ===== Node helpers =====
+        function getClosest(el, tags) {
+            let n = el;
+            while (n && n !== editorEl) {
+                if (n.nodeType === 1 && tags.includes(n.tagName)) return n;
+                n = n.parentNode;
+            }
+            return null;
+        }
+
+        function closestSpecial(node) {
+            while (node && node !== editorEl) {
+                if (node.tagName === 'PRE') return 'PRE';
+                if (node.tagName === 'BLOCKQUOTE') return 'BLOCKQUOTE';
+                node = node.parentNode;
+            }
+            return null;
+        }
+
+        function isInsideSpecialBlock() {
+            const sel = window.getSelection();
+            if (!sel.rangeCount) return null;
+            let n = sel.getRangeAt(0).startContainer;
+            if (n.nodeType === 3) n = n.parentNode;
+            return closestSpecial(n);
+        }
+
+        function unwrap(el) {
+            if (!el) return;
+            const parent = el.parentNode;
+            while (el.firstChild) parent.insertBefore(el.firstChild, el);
+            parent.removeChild(el);
+        }
+
+        function wrapRangeWith(range, tagName) {
             const wrapper = document.createElement(tagName);
             const frag = range.extractContents();
             wrapper.appendChild(frag);
             range.insertNode(wrapper);
             return wrapper;
         }
-        function ensureNotInside(tagName){
-            const sel = window.getSelection(); if(!sel.rangeCount) return;
-            let node = sel.getRangeAt(0).startContainer; if(node.nodeType===3) node = node.parentNode;
-            const target = getClosest(node,[tagName]); if(target) unwrap(target);
+
+        function ensureNotInside(tagName) {
+            const sel = window.getSelection();
+            if (!sel.rangeCount) return;
+            let node = sel.getRangeAt(0).startContainer;
+            if (node.nodeType === 3) node = node.parentNode;
+            const target = getClosest(node, [tagName]);
+            if (target) unwrap(target);
         }
 
-        // ========== Font size ==========
-        function applyFontSizeToSelection(size){ size = Math.max(14, Math.min(64, parseInt(size))); const sel = window.getSelection(); if(sel.rangeCount===0){ $editor.css('font-size', size+'px') } else { try{ let node = sel.getRangeAt(0).startContainer; if(node.nodeType===3) node=node.parentNode; let t = getClosest(node,['P','H1','H2','H3','LI']); if(t){ t.style.fontSize = size+'px'; currentFontSize=size; $fontSizeInput.val(size); return } }catch(e){ console.error('Error applying font size:',e) } } currentFontSize=size }
-        $fontSizeInput.on('input change', function(){ applyFontSizeToSelection($(this).val()) });
-        $('#fontSizeUp').on('click', function(e){ e.preventDefault(); applyFontSizeToSelection(currentFontSize+1); $fontSizeInput.val(currentFontSize) });
-        $('#fontSizeDown').on('click', function(e){ e.preventDefault(); applyFontSizeToSelection(currentFontSize-1); $fontSizeInput.val(currentFontSize) });
+        // ===== Guard: block conflicting operations in special blocks =====
+        function guardSpecialBlock(actionName) {
+            const special = isInsideSpecialBlock();
+            if (special) {
+                showStatus('⚠ ' + (special === 'PRE' ? '코드' : '인용문') + ' 블록 내에서 ' + actionName + '을(를) 변경할 수 없습니다.');
+                return true;
+            }
+            return false;
+        }
 
-        function updateFontSizeDisplay(){ const sel = window.getSelection(); if(sel.rangeCount===0) return; try{ let node = sel.getRangeAt(0).startContainer; if(node.nodeType===3) node=node.parentNode; let t = getClosest(node,['P','H1','H2','H3','LI']); if(t){ const style = t.getAttribute('style')||''; const m = style.match(/font-size:\s*(\d+)px/); if(m){ $fontSizeInput.val(m[1]); currentFontSize=parseInt(m[1]) } else { const computed = window.getComputedStyle(t).fontSize; const size = parseInt(computed); $fontSizeInput.val(size); currentFontSize=size } } }catch(e){ console.error('Error updating font size display:',e) } }
-        document.addEventListener('selectionchange', updateFontSizeDisplay); $editor.on('mouseup keyup', updateFontSizeDisplay);
+        function showStatus(msg) {
+            statusTextEl.textContent = msg;
+            setTimeout(function () { statusTextEl.textContent = '준비 완료'; }, 3000);
+        }
 
-        // ========== Color picker ==========
-        $('#textColorBtn').on('click', function(e){ e.preventDefault(); $textColorPicker.click() });
-        $('#bgColorBtn').on('click', function(e){ e.preventDefault(); $bgColorPicker.click() });
+        // ===== Font size =====
+        function applyFontSizeToSelection(size) {
+            size = Math.max(14, Math.min(64, parseInt(size) || 16));
+            currentFontSize = size;
+            fontSizeInput.value = size;
+            const sel = window.getSelection();
+            if (!sel.rangeCount) {
+                editorEl.style.fontSize = size + 'px';
+                return;
+            }
+            try {
+                let node = sel.getRangeAt(0).startContainer;
+                if (node.nodeType === 3) node = node.parentNode;
+                const t = getClosest(node, ['P', 'H1', 'H2', 'H3', 'LI', 'DIV']);
+                if (t) {
+                    t.style.fontSize = size + 'px';
+                }
+            } catch (e) {
+                console.error('Font size error:', e);
+            }
+        }
 
-        $textColorPicker.on('change input', function(e){ execCommand('foreColor', $(this).val()); $editor.focus() });
-        $bgColorPicker.on('change input', function(e){ execCommand('backColor', $(this).val()); $editor.focus() });
-
-        $mobileTextColorPicker.on('change input', function(e){
-            const color = $(this).val();
-            execCommand('foreColor', color);
-            $textColorHex.text(color.toUpperCase());
-            $editor.focus()
+        fontSizeInput.addEventListener('input', function () { applyFontSizeToSelection(this.value); });
+        fontSizeInput.addEventListener('change', function () { applyFontSizeToSelection(this.value); });
+        document.getElementById('fontSizeUp').addEventListener('click', function (e) {
+            e.preventDefault();
+            applyFontSizeToSelection(currentFontSize + 1);
+        });
+        document.getElementById('fontSizeDown').addEventListener('click', function (e) {
+            e.preventDefault();
+            applyFontSizeToSelection(currentFontSize - 1);
         });
 
-        $mobileBgColorPicker.on('change input', function(e){
-            const color = $(this).val();
-            execCommand('backColor', color);
-            $bgColorHex.text(color.toUpperCase());
-            $editor.focus()
+        function updateFontSizeDisplay() {
+            const sel = window.getSelection();
+            if (!sel.rangeCount) return;
+            try {
+                let node = sel.getRangeAt(0).startContainer;
+                if (node.nodeType === 3) node = node.parentNode;
+                const t = getClosest(node, ['P', 'H1', 'H2', 'H3', 'LI', 'DIV']);
+                if (t) {
+                    const style = t.getAttribute('style') || '';
+                    const m = style.match(/font-size:\s*(\d+)px/);
+                    if (m) {
+                        fontSizeInput.value = m[1];
+                        currentFontSize = parseInt(m[1]);
+                    } else {
+                        const computed = window.getComputedStyle(t).fontSize;
+                        const sz = parseInt(computed);
+                        fontSizeInput.value = sz;
+                        currentFontSize = sz;
+                    }
+                }
+            } catch (e) { /* ignore */ }
+        }
+
+        // ===== Color pickers =====
+        document.getElementById('textColorBtn').addEventListener('click', function (e) {
+            e.preventDefault();
+            textColorPicker.click();
+        });
+        document.getElementById('bgColorBtn').addEventListener('click', function (e) {
+            e.preventDefault();
+            bgColorPicker.click();
+        });
+        textColorPicker.addEventListener('input', function () { exec('foreColor', this.value); editorEl.focus(); });
+        bgColorPicker.addEventListener('input', function () { exec('backColor', this.value); editorEl.focus(); });
+
+        mobileTextColorPicker.addEventListener('input', function () {
+            exec('foreColor', this.value);
+            textColorHexEl.textContent = this.value.toUpperCase();
+            editorEl.focus();
+        });
+        mobileBgColorPicker.addEventListener('input', function () {
+            exec('backColor', this.value);
+            bgColorHexEl.textContent = this.value.toUpperCase();
+            editorEl.focus();
         });
 
-        $(document).on('click', '.toolbar-btn[data-format]', function(e){ e.preventDefault(); execCommand($(this).data('format')); updateToolbarState() });
+        // ===== Toolbar format buttons =====
+        document.querySelectorAll('.toolbar-btn[data-format]').forEach(function (btn) {
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();
+                const fmt = this.getAttribute('data-format');
+                // Guard alignment operations inside special blocks
+                if (['justifyLeft', 'justifyCenter', 'justifyRight'].includes(fmt)) {
+                    if (guardSpecialBlock('정렬')) return;
+                }
+                exec(fmt);
+                updateToolbarState();
+            });
+        });
 
-        // ========== Blockquote toggle ==========
-        function toggleBlockquote(){ const sel = window.getSelection(); if(!sel.rangeCount) return; const special = closestSpecial(sel.getRangeAt(0).startContainer);
-            if(special==='BLOCKQUOTE'){ const markers = placeSelectionMarkers(); try{ let n = sel.getRangeAt(0).startContainer; if(n.nodeType===3) n=n.parentNode; const bq = getClosest(n,['BLOCKQUOTE']); if(bq) unwrap(bq) } finally { restoreSelectionFromMarkers() } return }
+        // Bottom sheet format buttons
+        document.querySelectorAll('.bs-btn[data-format]').forEach(function (btn) {
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();
+                const fmt = this.getAttribute('data-format');
+                if (['justifyLeft', 'justifyCenter', 'justifyRight'].includes(fmt)) {
+                    if (guardSpecialBlock('정렬')) return;
+                }
+                exec(fmt);
+            });
+        });
+
+        // ===== Blockquote toggle =====
+        function toggleBlockquote() {
+            const sel = window.getSelection();
+            if (!sel.rangeCount) return;
+            const special = closestSpecial(sel.getRangeAt(0).startContainer);
+
+            // If inside blockquote, unwrap it
+            if (special === 'BLOCKQUOTE') {
+                const markers = placeSelectionMarkers();
+                try {
+                    let n = sel.getRangeAt(0).startContainer;
+                    if (n.nodeType === 3) n = n.parentNode;
+                    const bq = getClosest(n, ['BLOCKQUOTE']);
+                    if (bq) unwrap(bq);
+                } finally {
+                    restoreSelectionFromMarkers();
+                }
+                return;
+            }
+
+            // Don't allow blockquote inside code
+            if (special === 'PRE') {
+                showStatus('⚠ 코드 블록 내에서 인용문을 삽입할 수 없습니다.');
+                return;
+            }
+
             ensureNotInside('PRE');
             const markers = placeSelectionMarkers();
-            try{
+            try {
                 const r = sel.getRangeAt(0);
-                if(r.collapsed){ let n = r.startContainer; if(n.nodeType===3) n=n.parentNode; let target = getClosest(n,['P','H1','H2','H3','DIV','LI']); if(!target){ target = n } const bq = document.createElement('BLOCKQUOTE'); while(target.firstChild) bq.appendChild(target.firstChild); target.appendChild(bq) }
-                else{ wrapRangeWith(r,'BLOCKQUOTE') }
-            } catch(e){ console.error('Blockquote toggle failed:',e) } finally{ restoreSelectionFromMarkers() }
+                if (r.collapsed) {
+                    let n = r.startContainer;
+                    if (n.nodeType === 3) n = n.parentNode;
+                    let target = getClosest(n, ['P', 'H1', 'H2', 'H3', 'DIV', 'LI']);
+                    if (!target) target = n;
+                    const bq = document.createElement('BLOCKQUOTE');
+                    while (target.firstChild) bq.appendChild(target.firstChild);
+                    target.appendChild(bq);
+                } else {
+                    wrapRangeWith(r, 'BLOCKQUOTE');
+                }
+            } catch (e) {
+                console.error('Blockquote toggle failed:', e);
+            } finally {
+                restoreSelectionFromMarkers();
+            }
         }
-        $('#blockquoteBtn, #mobileBlockquoteBtn').on('click', function(e){ e.preventDefault(); toggleBlockquote() });
 
-        // ========== Code toggle ==========
-        function addCopyButton(pre){ if($(pre).find('.copy-code-btn').length>0) return; $(pre).css('position','relative'); const btn = document.createElement('button'); btn.className='copy-code-btn'; btn.innerHTML='<i class="fas fa-copy"></i> 복사'; btn.addEventListener('click', function(e){ e.preventDefault(); const code = $(pre).text(); navigator.clipboard.writeText(code).then(()=>{ const o = btn.innerHTML; btn.innerHTML='✓ 복사됨'; setTimeout(()=>{ btn.innerHTML=o },2000) }).catch(()=>{ alert('복사 실패') }) }); $(pre).prepend(btn) }
-        function toggleCode(){ const sel = window.getSelection(); if(!sel.rangeCount) return; const special = closestSpecial(sel.getRangeAt(0).startContainer);
-            if(special==='PRE'){ const markers = placeSelectionMarkers(); try{ let n = sel.getRangeAt(0).startContainer; if(n.nodeType===3) n=n.parentNode; const pre = getClosest(n,['PRE']); if(pre){ $(pre).find('.copy-code-btn').remove(); unwrap(pre) } } finally { restoreSelectionFromMarkers() } return }
+        document.getElementById('blockquoteBtn').addEventListener('click', function (e) { e.preventDefault(); toggleBlockquote(); });
+        document.getElementById('mobileBlockquoteBtn').addEventListener('click', function (e) { e.preventDefault(); toggleBlockquote(); });
+
+        // ===== Code block toggle =====
+        function addCopyButton(pre) {
+            if (pre.querySelector('.copy-code-btn')) return;
+            pre.style.position = 'relative';
+            const btn = document.createElement('button');
+            btn.className = 'copy-code-btn';
+            btn.innerHTML = '<i class="fas fa-copy"></i> 복사';
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const code = pre.textContent.replace(/복사$|✓ 복사됨$/, '').trim();
+                navigator.clipboard.writeText(code).then(function () {
+                    const orig = btn.innerHTML;
+                    btn.innerHTML = '✓ 복사됨';
+                    setTimeout(function () { btn.innerHTML = orig; }, 2000);
+                }).catch(function () {
+                    showStatus('복사 실패');
+                });
+            });
+            pre.prepend(btn);
+        }
+
+        function toggleCode() {
+            const sel = window.getSelection();
+            if (!sel.rangeCount) return;
+            const special = closestSpecial(sel.getRangeAt(0).startContainer);
+
+            // If inside code, unwrap
+            if (special === 'PRE') {
+                const markers = placeSelectionMarkers();
+                try {
+                    let n = sel.getRangeAt(0).startContainer;
+                    if (n.nodeType === 3) n = n.parentNode;
+                    const pre = getClosest(n, ['PRE']);
+                    if (pre) {
+                        const copyBtn = pre.querySelector('.copy-code-btn');
+                        if (copyBtn) copyBtn.remove();
+                        unwrap(pre);
+                    }
+                } finally {
+                    restoreSelectionFromMarkers();
+                }
+                return;
+            }
+
+            // Don't allow code inside blockquote
+            if (special === 'BLOCKQUOTE') {
+                showStatus('⚠ 인용문 내에서 코드 블록을 삽입할 수 없습니다.');
+                return;
+            }
+
             ensureNotInside('BLOCKQUOTE');
             const markers = placeSelectionMarkers();
-            try{
+            try {
                 const r = sel.getRangeAt(0);
-                if(r.collapsed){ let n = r.startContainer; if(n.nodeType===3) n=n.parentNode; let target = getClosest(n,['P','H1','H2','H3','DIV','LI']); if(!target){ target = n } const pre = document.createElement('PRE'); while(target.firstChild) pre.appendChild(target.firstChild); target.appendChild(pre); addCopyButton(pre) }
-                else{ const pre = wrapRangeWith(r,'PRE'); addCopyButton(pre) }
-            } catch(e){ console.error('Code block toggle failed:',e) } finally { restoreSelectionFromMarkers() }
-        }
-        $('#codeBtn, #mobileCodeBtn').on('click', function(e){ e.preventDefault(); toggleCode() });
-
-        // ========== Style & indent protections ==========
-        function isInsideSpecialBlock(){ const sel = window.getSelection(); if(!sel.rangeCount) return null; let n = sel.getRangeAt(0).startContainer; if(n.nodeType===3) n=n.parentNode; return closestSpecial(n) }
-        $('#styleSelect').on('change', function(){ const tag = this.value; if(!tag) return; if(isInsideSpecialBlock()){ alert('코드 또는 인용문 내에서는 스타일을 변경할 수 없습니다.'); this.selectedIndex = 0; return } const sel = window.getSelection(); if(!sel.rangeCount) return; try{ let n = sel.getRangeAt(0).startContainer; if(n.nodeType===3) n=n.parentNode; let t = getClosest(n,['P','H1','H2','H3','DIV','LI']); if(t){ t.removeAttribute('style'); document.execCommand('formatBlock', false, tag==='p'?'<p>':`<${tag}>`); this.selectedIndex=0; updateFontSizeDisplay(); return } document.execCommand('formatBlock', false, `<${tag}>`); this.selectedIndex=0; updateFontSizeDisplay() }catch(e){ console.error('Style change failed:',e); this.selectedIndex=0 } });
-
-        function applyIndentToSelection(level){ if(isInsideSpecialBlock()){ alert('코드 또는 인용문 내에서는 들여쓰기를 적용할 수 없습니다.'); return } const sel = window.getSelection(); if(!sel.rangeCount) return; try{ let sN = sel.getRangeAt(0).startContainer; let eN = sel.getRangeAt(0).endContainer; if(sN.nodeType===3) sN=sN.parentNode; if(eN.nodeType===3) eN=eN.parentNode; const elements = new Set(); const collect=(node)=>{ if(!node) return false; if(node===$editor[0]) return true; const tg = node.tagName; if(['P','H1','H2','H3','LI','DIV'].includes(tg)) elements.add(node); if(node.nodeType===1){ for(let child of node.children){ if(['P','H1','H2','H3','LI','DIV'].includes(child.tagName)) elements.add(child) } } return collect(node.parentNode) }; collect(sN); collect(eN); elements.forEach(el=>{ for(let i=0;i<=6;i++){ $(el).removeClass(`indent-level-${i}`) } if(level!=='0' && level){ $(el).addClass(`indent-level-${level}`) } }) }catch(e){ console.error('Indent failed:',e) } }
-        $('#indentSelect').on('change', function(){ const level = this.value; if(level!==''){ applyIndentToSelection(level); this.selectedIndex=0 } });
-        $(document).on('click','.indent-btn',function(e){ e.preventDefault(); applyIndentToSelection($(this).data('level').toString()) });
-        $(document).on('click','.align-btn',function(e){ e.preventDefault(); execCommand($(this).data('format')) });
-
-        function toggleBottomSheet(){ $bottomSheet.toggleClass('translate-y-full') }
-        $('#moreBtn, #closeBottomSheetBtn').on('click', function(e){ e.preventDefault(); toggleBottomSheet() });
-
-        function updateCharCount(){
-            if(currentMode === 'editor') $charCount.text($editor.text().length.toLocaleString());
-            else if(currentMode === 'html') $charCount.text($htmlMode.val().length.toLocaleString());
-            else if(currentMode === 'compatEditor') $charCount.text($compatEditorMode.text().length.toLocaleString());
-            else if(currentMode === 'compatHtml') $charCount.text($compatHtmlMode.val().length.toLocaleString());
+                if (r.collapsed) {
+                    let n = r.startContainer;
+                    if (n.nodeType === 3) n = n.parentNode;
+                    let target = getClosest(n, ['P', 'H1', 'H2', 'H3', 'DIV', 'LI']);
+                    if (!target) target = n;
+                    const pre = document.createElement('PRE');
+                    while (target.firstChild) pre.appendChild(target.firstChild);
+                    target.appendChild(pre);
+                    addCopyButton(pre);
+                } else {
+                    const pre = wrapRangeWith(r, 'PRE');
+                    addCopyButton(pre);
+                }
+            } catch (e) {
+                console.error('Code toggle failed:', e);
+            } finally {
+                restoreSelectionFromMarkers();
+            }
         }
 
-        $editor.on('input', updateCharCount);
-        $htmlMode.on('input', updateCharCount);
+        document.getElementById('codeBtn').addEventListener('click', function (e) { e.preventDefault(); toggleCode(); });
+        document.getElementById('mobileCodeBtn').addEventListener('click', function (e) { e.preventDefault(); toggleCode(); });
 
-        $editor.on('keydown', function(e){ if(e.key==='Enter'){ const sel = window.getSelection(); if(sel.rangeCount>0){ const node = sel.anchorNode; const parent = node.nodeType===3 ? node.parentNode : node; if($(parent).closest('pre, blockquote').length){ e.preventDefault(); execCommand('insertLineBreak') } } return } if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='b'){ e.preventDefault(); execCommand('bold') } if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='i'){ e.preventDefault(); execCommand('italic') } if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='u'){ e.preventDefault(); execCommand('underline') } });
+        // ===== Style select (H1/H2/H3/P) =====
+        document.getElementById('styleSelect').addEventListener('change', function () {
+            const tag = this.value;
+            if (!tag) return;
+            if (guardSpecialBlock('스타일')) {
+                this.selectedIndex = 0;
+                return;
+            }
+            try {
+                let node = window.getSelection().getRangeAt(0).startContainer;
+                if (node.nodeType === 3) node = node.parentNode;
+                const t = getClosest(node, ['P', 'H1', 'H2', 'H3', 'DIV', 'LI']);
+                if (t) t.removeAttribute('style');
+                document.execCommand('formatBlock', false, tag === 'p' ? '<p>' : '<' + tag + '>');
+            } catch (e) {
+                console.error('Style change failed:', e);
+            }
+            this.selectedIndex = 0;
+            updateFontSizeDisplay();
+        });
 
-        function updateToolbarState(){ const cmds=['bold','italic','underline','insertUnorderedList','insertOrderedList']; cmds.forEach(c=>{ try{ if(document.queryCommandState(c)){ $(`.toolbar-btn[data-format="${c}"]`).addClass('active') } else { $(`.toolbar-btn[data-format="${c}"]`).removeClass('active') } }catch(e){} }) }
-        document.addEventListener('selectionchange', updateToolbarState); $editor.on('mouseup keyup', updateToolbarState);
+        // Mobile style buttons
+        document.querySelectorAll('[data-mobile-style]').forEach(function (btn) {
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();
+                const tag = this.getAttribute('data-mobile-style');
+                if (guardSpecialBlock('스타일')) return;
+                try {
+                    document.execCommand('formatBlock', false, tag === 'p' ? '<p>' : '<' + tag + '>');
+                } catch (e) {
+                    console.error('Mobile style change failed:', e);
+                }
+            });
+        });
 
-        $editor.on('click', function(){ if(!isProcessingCommand){ setTimeout(()=>{ $(this).find('pre').each(function(){ addCopyButton(this) }) },10) } });
-        $editor.focus();
+        // ===== Font family =====
+        function applyFontFamily(family) {
+            editorEl.style.fontFamily = "'" + family + "', sans-serif";
+            if (fontFamilySelect) fontFamilySelect.value = family;
+            // Highlight active mobile font button
+            document.querySelectorAll('[data-font]').forEach(function (btn) {
+                btn.classList.toggle('active', btn.getAttribute('data-font') === family);
+            });
+        }
+
+        if (fontFamilySelect) {
+            fontFamilySelect.addEventListener('change', function () {
+                applyFontFamily(this.value);
+                editorEl.focus();
+            });
+        }
+
+        document.querySelectorAll('[data-font]').forEach(function (btn) {
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();
+                applyFontFamily(this.getAttribute('data-font'));
+            });
+        });
+
+        // ===== Indent =====
+        function applyIndentToSelection(level) {
+            if (guardSpecialBlock('들여쓰기')) return;
+            const sel = window.getSelection();
+            if (!sel.rangeCount) return;
+            try {
+                let sN = sel.getRangeAt(0).startContainer;
+                let eN = sel.getRangeAt(0).endContainer;
+                if (sN.nodeType === 3) sN = sN.parentNode;
+                if (eN.nodeType === 3) eN = eN.parentNode;
+                const elements = new Set();
+                function collect(node) {
+                    if (!node || node === editorEl) return;
+                    if (['P', 'H1', 'H2', 'H3', 'LI', 'DIV'].includes(node.tagName)) elements.add(node);
+                    if (node.nodeType === 1) {
+                        for (const child of node.children) {
+                            if (['P', 'H1', 'H2', 'H3', 'LI', 'DIV'].includes(child.tagName)) elements.add(child);
+                        }
+                    }
+                    collect(node.parentNode);
+                }
+                collect(sN);
+                collect(eN);
+                elements.forEach(function (el) {
+                    for (let i = 0; i <= 6; i++) el.classList.remove('indent-level-' + i);
+                    if (level !== '0' && level) el.classList.add('indent-level-' + level);
+                });
+            } catch (e) {
+                console.error('Indent failed:', e);
+            }
+        }
+
+        document.getElementById('indentSelect').addEventListener('change', function () {
+            if (this.value !== '') {
+                applyIndentToSelection(this.value);
+                this.selectedIndex = 0;
+            }
+        });
+
+        document.querySelectorAll('[data-indent]').forEach(function (btn) {
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();
+                applyIndentToSelection(this.getAttribute('data-indent'));
+            });
+        });
+
+        // ===== Bottom Sheet =====
+        function openBottomSheet() {
+            saveSelection();
+            bottomSheet.classList.add('open');
+            bottomSheetOverlay.classList.add('open');
+        }
+        function closeBottomSheet() {
+            bottomSheet.classList.remove('open');
+            bottomSheetOverlay.classList.remove('open');
+            editorEl.focus();
+            restoreSelection();
+        }
+
+        document.getElementById('moreBtn').addEventListener('click', function (e) { e.preventDefault(); openBottomSheet(); });
+        document.getElementById('closeBottomSheetBtn').addEventListener('click', function (e) { e.preventDefault(); closeBottomSheet(); });
+        bottomSheetOverlay.addEventListener('click', closeBottomSheet);
+
+        // ===== Character & word count =====
+        function updateCharCount() {
+            let text = '';
+            if (currentMode === 'editor') text = editorEl.textContent;
+            else if (currentMode === 'html') text = htmlModeEl.value;
+            else if (currentMode === 'markdown') text = markdownModeEl.value;
+
+            const withSpaces = text.length;
+            const noSpaces = text.replace(/\s/g, '').length;
+            const words = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
+
+            countWithSpacesEl.textContent = withSpaces.toLocaleString();
+            countNoSpacesEl.textContent = noSpaces.toLocaleString();
+            countWordsEl.textContent = words.toLocaleString();
+        }
+        editorEl.addEventListener('input', updateCharCount);
+        htmlModeEl.addEventListener('input', updateCharCount);
+
+        // ===== Keyboard shortcuts =====
+        editorEl.addEventListener('keydown', function (e) {
+            // Enter inside special blocks → line break only
+            if (e.key === 'Enter') {
+                const sel = window.getSelection();
+                if (sel.rangeCount > 0) {
+                    let node = sel.anchorNode;
+                    const parent = node.nodeType === 3 ? node.parentNode : node;
+                    if (getClosest(parent, ['PRE', 'BLOCKQUOTE'])) {
+                        e.preventDefault();
+                        exec('insertLineBreak');
+                    }
+                }
+                return;
+            }
+            const ctrl = e.ctrlKey || e.metaKey;
+            if (ctrl && e.key.toLowerCase() === 'b') { e.preventDefault(); exec('bold'); }
+            if (ctrl && e.key.toLowerCase() === 'i') { e.preventDefault(); exec('italic'); }
+            if (ctrl && e.key.toLowerCase() === 'u') { e.preventDefault(); exec('underline'); }
+        });
+
+        // ===== Toolbar state =====
+        function updateToolbarState() {
+            ['bold', 'italic', 'underline', 'insertUnorderedList', 'insertOrderedList'].forEach(function (cmd) {
+                try {
+                    const btn = document.querySelector('.toolbar-btn[data-format="' + cmd + '"]');
+                    if (!btn) return;
+                    if (document.queryCommandState(cmd)) btn.classList.add('active');
+                    else btn.classList.remove('active');
+                } catch (e) { /* ignore */ }
+            });
+        }
+
+        document.addEventListener('selectionchange', function () {
+            updateToolbarState();
+            updateFontSizeDisplay();
+        });
+        editorEl.addEventListener('mouseup', updateToolbarState);
+
+        // ===== Auto-add copy buttons to PRE elements =====
+        editorEl.addEventListener('click', function () {
+            setTimeout(function () {
+                editorEl.querySelectorAll('pre').forEach(addCopyButton);
+            }, 10);
+        });
+
+        // ===== HTML Prettify =====
+        function prettifyHTML(html) {
+            let formatted = '';
+            let indent = 0;
+            const indentStr = '  ';
+            const voidElements = ['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr'];
+
+            const temp = document.createElement('div');
+            temp.innerHTML = html;
+
+            // Wrap naked text nodes in <p>
+            Array.from(temp.childNodes).forEach(function (node) {
+                if (node.nodeType === 3 && node.textContent.trim()) {
+                    const p = document.createElement('p');
+                    p.textContent = node.textContent;
+                    temp.replaceChild(p, node);
+                }
+            });
+
+            html = temp.innerHTML;
+            const regex = /(<[^/>]*>)|(<\/[^>]*>)|([^<]+)/g;
+            let match;
+
+            while ((match = regex.exec(html)) !== null) {
+                const content = match[0].trim();
+                if (!content) continue;
+                if (content.startsWith('</')) {
+                    indent = Math.max(0, indent - 1);
+                    formatted += indentStr.repeat(indent) + content + '\n';
+                } else if (content.startsWith('<') && content.endsWith('/>')) {
+                    formatted += indentStr.repeat(indent) + content + '\n';
+                } else if (content.startsWith('<')) {
+                    const tagName = (content.match(/<(\w+)/) || [])[1];
+                    formatted += indentStr.repeat(indent) + content + '\n';
+                    if (tagName && !voidElements.includes(tagName.toLowerCase())) indent++;
+                } else {
+                    if (content.trim()) formatted += indentStr.repeat(indent) + content + '\n';
+                }
+            }
+            return formatted.trim();
+        }
+
+        // ===== HTML → Markdown conversion =====
+        function htmlToMarkdown(html) {
+            const temp = document.createElement('div');
+            temp.innerHTML = html;
+            return nodeToMarkdown(temp).trim().replace(/\n{3,}/g, '\n\n');
+        }
+
+        function nodeToMarkdown(node) {
+            let md = '';
+            node.childNodes.forEach(function (child) {
+                if (child.nodeType === 3) {
+                    md += child.textContent;
+                    return;
+                }
+                if (child.nodeType !== 1) return;
+
+                const tag = child.tagName;
+                const inner = nodeToMarkdown(child);
+
+                switch (tag) {
+                    case 'H1': md += '\n# ' + inner.trim() + '\n\n'; break;
+                    case 'H2': md += '\n## ' + inner.trim() + '\n\n'; break;
+                    case 'H3': md += '\n### ' + inner.trim() + '\n\n'; break;
+                    case 'P':
+                    case 'DIV': md += inner.trim() + '\n\n'; break;
+                    case 'BR': md += '\n'; break;
+                    case 'STRONG':
+                    case 'B': md += '**' + inner + '**'; break;
+                    case 'EM':
+                    case 'I': md += '*' + inner + '*'; break;
+                    case 'U': md += '<u>' + inner + '</u>'; break;
+                    case 'BLOCKQUOTE':
+                        md += '\n' + inner.trim().split('\n').map(function (l) { return '> ' + l; }).join('\n') + '\n\n';
+                        break;
+                    case 'PRE':
+                        // Remove copy button text from code
+                        let code = child.textContent;
+                        const copyBtn = child.querySelector('.copy-code-btn');
+                        if (copyBtn) code = code.replace(copyBtn.textContent, '').trim();
+                        md += '\n```\n' + code + '\n```\n\n';
+                        break;
+                    case 'UL':
+                        child.querySelectorAll(':scope > li').forEach(function (li) {
+                            md += '- ' + nodeToMarkdown(li).trim() + '\n';
+                        });
+                        md += '\n';
+                        break;
+                    case 'OL':
+                        var idx = 1;
+                        child.querySelectorAll(':scope > li').forEach(function (li) {
+                            md += idx + '. ' + nodeToMarkdown(li).trim() + '\n';
+                            idx++;
+                        });
+                        md += '\n';
+                        break;
+                    case 'LI': md += inner; break;
+                    case 'A':
+                        var href = child.getAttribute('href') || '';
+                        md += '[' + inner + '](' + href + ')';
+                        break;
+                    case 'SPAN':
+                    case 'FONT': md += inner; break;
+                    case 'BUTTON': break; // skip copy buttons
+                    default: md += inner; break;
+                }
+            });
+            return md;
+        }
+
+        // ===== Mode switching =====
+        function switchMode(mode) {
+            if (mode === 'html') {
+                htmlModeEl.value = prettifyHTML(editorEl.innerHTML);
+            } else if (mode === 'markdown') {
+                markdownModeEl.value = htmlToMarkdown(editorEl.innerHTML);
+            } else if (mode === 'editor' && currentMode === 'html') {
+                editorEl.innerHTML = htmlModeEl.value;
+                // Re-add copy buttons
+                editorEl.querySelectorAll('pre').forEach(addCopyButton);
+            }
+
+            editorEl.style.display = mode === 'editor' ? 'block' : 'none';
+            htmlModeEl.style.display = mode === 'html' ? 'block' : 'none';
+            markdownModeEl.style.display = mode === 'markdown' ? 'block' : 'none';
+
+            document.querySelectorAll('.mode-tab').forEach(function (t) { t.classList.remove('active'); });
+            document.querySelector('.mode-tab[data-mode="' + mode + '"]').classList.add('active');
+
+            modeLabelEl.textContent = modeLabels[mode];
+            currentMode = mode;
+            updateCharCount();
+
+            if (mode === 'editor') editorEl.focus();
+            else if (mode === 'html') htmlModeEl.focus();
+        }
+
+        document.querySelectorAll('.mode-tab').forEach(function (tab) {
+            tab.addEventListener('click', function (e) {
+                e.preventDefault();
+                switchMode(this.getAttribute('data-mode'));
+            });
+        });
+
+        // ===== Init =====
+        editorEl.focus();
+        updateCharCount();
+    })();
     </script>
 </body>
 </html>
