@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta name="referrer" content="no-referrer">
     <title>thinkgood 리치 텍스트 에디터</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -595,6 +596,219 @@
             font-family: 'SF Mono', monospace;
         }
 
+        /* ===== Editor images & embeds ===== */
+        .editor-area img {
+            max-width: 100%;
+            height: auto;
+            border-radius: var(--r-md);
+            margin: var(--space-3) 0;
+            display: block;
+            cursor: pointer;
+        }
+        .editor-area .video-embed {
+            position: relative;
+            max-width: 560px;
+            margin: var(--space-3) 0;
+            border-radius: var(--r-md);
+            background: var(--n-900);
+            cursor: pointer;
+            aspect-ratio: 16 / 9;
+        }
+        .editor-area .video-embed iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: var(--r-md);
+            pointer-events: none;
+        }
+        .editor-area .video-embed.video-active iframe {
+            pointer-events: auto;
+        }
+
+        /* Resizable wrapper */
+        .media-resizable {
+            position: relative;
+            display: inline-block;
+            max-width: 100%;
+            margin: var(--space-3) 0;
+            line-height: 0;
+            overflow: hidden;
+            vertical-align: top;
+        }
+        .media-resizable img {
+            margin: 0;
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+        .media-resizable .video-embed {
+            margin: 0;
+            width: 100%;
+        }
+
+        /* Selected state */
+        .media-resizable.media-selected {
+            outline: 2px solid var(--brand-primary);
+            outline-offset: 2px;
+            border-radius: var(--r-md);
+        }
+
+        /* Resize handles */
+        .media-resizable .resize-handle {
+            display: none;
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: var(--brand-primary);
+            border: 2px solid var(--n-0);
+            border-radius: 50%;
+            z-index: 10;
+            box-shadow: var(--sh-2);
+        }
+        .media-resizable.media-selected .resize-handle { display: block; }
+        .resize-handle-nw { top: -6px; left: -6px; cursor: nw-resize; }
+        .resize-handle-ne { top: -6px; right: -6px; cursor: ne-resize; }
+        .resize-handle-sw { bottom: -6px; left: -6px; cursor: sw-resize; }
+        .resize-handle-se { bottom: -6px; right: -6px; cursor: se-resize; }
+
+        /* ===== Image Context Menu ===== */
+        .img-context-menu {
+            display: none;
+            position: fixed;
+            z-index: 400;
+            background: var(--bg-card);
+            border: 1px solid var(--border-default);
+            border-radius: var(--r-md);
+            box-shadow: var(--sh-3);
+            padding: var(--space-1) 0;
+            min-width: 180px;
+        }
+        .img-context-menu.open { display: block; }
+        .img-context-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            width: 100%;
+            padding: var(--space-2) var(--space-4);
+            border: none;
+            background: none;
+            font-size: 14px;
+            font-weight: 500;
+            font-family: var(--font-family);
+            color: var(--fg-default);
+            cursor: pointer;
+            text-align: left;
+        }
+        .img-context-item:hover {
+            background: var(--bg-sunken);
+        }
+        .img-context-item i { color: var(--fg-muted); width: 16px; text-align: center; }
+        .editor-area a {
+            color: var(--brand-primary);
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }
+        .editor-area a:hover {
+            color: var(--brand-primary-hover);
+        }
+
+        /* ===== Insert Modal ===== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(27,23,23,0.48);
+            z-index: 300;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.open {
+            display: flex;
+        }
+        .modal-box {
+            background: var(--bg-card);
+            border-radius: var(--r-xl);
+            box-shadow: var(--sh-3);
+            width: 90%;
+            max-width: 480px;
+            overflow: hidden;
+        }
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--space-5) var(--space-5) var(--space-3);
+        }
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--fg-default);
+        }
+        .modal-body {
+            padding: 0 var(--space-5) var(--space-4);
+        }
+        .modal-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--fg-muted);
+            margin-bottom: var(--space-2);
+        }
+        .modal-input {
+            width: 100%;
+            height: 44px;
+            padding: 0 var(--space-3);
+            border: 1px solid var(--border-default);
+            border-radius: var(--r-md);
+            font-size: 15px;
+            font-family: var(--font-family);
+            color: var(--fg-default);
+            background: var(--bg-sunken);
+            transition: border-color var(--dur-fast);
+        }
+        .modal-input:focus {
+            outline: none;
+            border-color: var(--border-focus);
+            box-shadow: var(--sh-focus);
+            background: var(--bg-card);
+        }
+        .modal-input::placeholder { color: var(--fg-subtle); }
+        .modal-field { margin-top: var(--space-3); }
+        .modal-hint {
+            margin-top: var(--space-2);
+            font-size: 12px;
+            color: var(--fg-muted);
+            line-height: 16px;
+        }
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: var(--space-3);
+            padding: var(--space-3) var(--space-5) var(--space-5);
+        }
+        .modal-cancel, .modal-confirm {
+            height: 40px;
+            padding: 0 var(--space-4);
+            border-radius: var(--r-md);
+            font-size: 15px;
+            font-weight: 600;
+            font-family: var(--font-family);
+            cursor: pointer;
+            transition: all var(--dur-fast);
+        }
+        .modal-cancel {
+            background: var(--bg-card);
+            border: 1px solid var(--border-default);
+            color: var(--fg-default);
+        }
+        .modal-cancel:hover { background: var(--bg-sunken); }
+        .modal-confirm {
+            background: var(--brand-primary);
+            border: none;
+            color: var(--n-0);
+        }
+        .modal-confirm:hover { background: var(--brand-primary-hover); }
+
         /* ===== Scrollbar ===== */
         .editor-content::-webkit-scrollbar,
         .mode-textarea::-webkit-scrollbar { width: 8px; }
@@ -667,6 +881,12 @@
 
         <button class="toolbar-btn desktop-only" id="blockquoteBtn" title="인용문"><i class="fas fa-quote-left"></i><span class="btn-label">인용문</span></button>
         <button class="toolbar-btn desktop-only" id="codeBtn" title="코드 블록"><i class="fas fa-code"></i><span class="btn-label">코드</span></button>
+
+        <div class="toolbar-divider desktop-only"></div>
+
+        <button class="toolbar-btn" id="linkBtn" title="링크"><i class="fas fa-link"></i><span class="btn-label desktop-only">링크</span></button>
+        <button class="toolbar-btn desktop-only" id="imageBtn" title="이미지"><i class="fas fa-image"></i><span class="btn-label">이미지</span></button>
+        <button class="toolbar-btn desktop-only" id="videoBtn" title="영상"><i class="fas fa-video"></i><span class="btn-label">영상</span></button>
 
         <div class="toolbar-divider desktop-only"></div>
 
@@ -805,6 +1025,44 @@
             <div class="bs-row">
                 <button class="bs-btn" id="mobileBlockquoteBtn"><i class="fas fa-quote-left"></i> 인용문</button>
                 <button class="bs-btn" id="mobileCodeBtn"><i class="fas fa-code"></i> 코드</button>
+            </div>
+        </div>
+
+        <div class="bs-section">
+            <div class="bs-label">삽입</div>
+            <div class="bs-row">
+                <button class="bs-btn" id="mobileImageBtn"><i class="fas fa-image"></i> 이미지</button>
+                <button class="bs-btn" id="mobileVideoBtn"><i class="fas fa-video"></i> 영상</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Context Menu -->
+    <div class="img-context-menu" id="imgContextMenu">
+        <button class="img-context-item" id="ctxChangeImageUrl"><i class="fas fa-image"></i>이미지 URL 변경</button>
+        <button class="img-context-item" id="ctxAddImageLink"><i class="fas fa-link"></i>이미지에 링크 넣기</button>
+        <button class="img-context-item" id="ctxRemoveMedia"><i class="fas fa-trash-alt"></i>삭제</button>
+    </div>
+
+    <!-- Insert Modal -->
+    <div class="modal-overlay" id="insertModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <span class="modal-title" id="modalTitle">삽입</span>
+                <button class="bottom-sheet-close" id="modalCloseBtn"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <label class="modal-label" id="modalUrlLabel">URL</label>
+                <input type="text" class="modal-input" id="modalUrlInput" placeholder="https://...">
+                <div class="modal-field" id="modalTextField" style="display:none;">
+                    <label class="modal-label">표시 텍스트</label>
+                    <input type="text" class="modal-input" id="modalTextInput" placeholder="링크에 표시할 텍스트 (선택)">
+                </div>
+                <div class="modal-hint" id="modalHint"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-cancel" id="modalCancelBtn">취소</button>
+                <button class="modal-confirm" id="modalConfirmBtn">삽입</button>
             </div>
         </div>
     </div>
@@ -1202,6 +1460,624 @@
         document.getElementById('codeBtn').addEventListener('click', function (e) { e.preventDefault(); toggleCode(); });
         document.getElementById('mobileCodeBtn').addEventListener('click', function (e) { e.preventDefault(); toggleCode(); });
 
+        // ===== Insert Modal (Link / Image / Video) =====
+        const insertModal = document.getElementById('insertModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalUrlLabel = document.getElementById('modalUrlLabel');
+        const modalUrlInput = document.getElementById('modalUrlInput');
+        const modalTextInput = document.getElementById('modalTextInput');
+        const modalTextField = document.getElementById('modalTextField');
+        const modalHint = document.getElementById('modalHint');
+        const modalConfirmBtn = document.getElementById('modalConfirmBtn');
+        let insertType = null; // 'link', 'image', 'video'
+        let selectionBeforeModal = null;
+
+        function openInsertModal(type) {
+            insertType = type;
+            // Save selection before opening modal
+            const sel = window.getSelection();
+            if (sel.rangeCount > 0) {
+                selectionBeforeModal = sel.getRangeAt(0).cloneRange();
+            }
+
+            modalUrlInput.value = '';
+            modalTextInput.value = '';
+
+            if (type === 'link') {
+                modalTitle.textContent = '링크 삽입';
+                modalUrlLabel.textContent = '링크 URL';
+                modalUrlInput.placeholder = 'https://example.com';
+                modalTextField.style.display = 'block';
+                // Pre-fill text with selection
+                if (sel.rangeCount > 0 && !sel.isCollapsed) {
+                    modalTextInput.value = sel.toString();
+                }
+                modalHint.textContent = '텍스트를 선택한 상태에서 링크를 삽입하면 선택 텍스트에 링크가 적용됩니다.';
+            } else if (type === 'image') {
+                modalTitle.textContent = '이미지 삽입';
+                modalUrlLabel.textContent = '이미지 URL';
+                modalUrlInput.placeholder = 'https://example.com/image.jpg';
+                modalTextField.style.display = 'none';
+                modalHint.textContent = '이미지의 직접 URL을 입력하세요. (base64 업로드 불가)';
+            } else if (type === 'video') {
+                modalTitle.textContent = '영상 삽입';
+                modalUrlLabel.textContent = '영상 URL';
+                modalUrlInput.placeholder = 'https://www.youtube.com/watch?v=...';
+                modalTextField.style.display = 'none';
+                modalHint.textContent = 'YouTube, Vimeo 등 영상 URL을 입력하면 임베드됩니다.';
+            }
+
+            insertModal.classList.add('open');
+            setTimeout(function () { modalUrlInput.focus(); }, 100);
+        }
+
+        function closeInsertModal() {
+            insertModal.classList.remove('open');
+        }
+
+        function parseVideoUrl(url) {
+            url = url.trim();
+            // YouTube: various formats
+            var m = url.match(/(?:youtube\.com\/(?:watch\?v=|live\/|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+            if (m) {
+                var si = '';
+                var siMatch = url.match(/[?&]si=([^&]+)/);
+                if (siMatch) si = '?si=' + siMatch[1];
+                return { type: 'youtube', id: m[1], src: 'https://www.youtube.com/embed/' + m[1] + si };
+            }
+            // Vimeo
+            m = url.match(/vimeo\.com\/(\d+)/);
+            if (m) {
+                return { type: 'vimeo', id: m[1], src: 'https://player.vimeo.com/video/' + m[1] };
+            }
+            return null;
+        }
+
+        // Ensure selection is inside editor; if not, place cursor at end
+        function ensureCursorInEditor() {
+            var sel = window.getSelection();
+            if (sel.rangeCount > 0) {
+                var node = sel.getRangeAt(0).startContainer;
+                if (editorEl.contains(node)) return; // already inside
+            }
+            // Place cursor at end of editor
+            var range = document.createRange();
+            range.selectNodeContents(editorEl);
+            range.collapse(false);
+            sel.removeAllRanges();
+            sel.addRange(range);
+        }
+
+        function doInsert() {
+            var url = modalUrlInput.value.trim();
+            if (!url) { modalUrlInput.focus(); return; }
+
+            // Capture values BEFORE closing modal
+            var type = insertType;
+            var text = modalTextInput.value.trim();
+            var savedRange = selectionBeforeModal;
+
+            // Close modal
+            closeInsertModal();
+
+            // Restore focus and selection — MUST be inside editor
+            editorEl.focus();
+            if (savedRange && editorEl.contains(savedRange.startContainer)) {
+                var sel = window.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(savedRange);
+            } else {
+                ensureCursorInEditor();
+            }
+
+            if (type === 'link') {
+                var sel = window.getSelection();
+                if (sel.rangeCount > 0 && !sel.isCollapsed) {
+                    exec('createLink', url);
+                } else {
+                    var a = document.createElement('a');
+                    a.href = url;
+                    a.textContent = text || url;
+                    a.target = '_blank';
+                    a.rel = 'noopener noreferrer';
+                    insertNodeAtCursor(a);
+                }
+                // Ensure target=_blank on all matching links
+                setTimeout(function () {
+                    editorEl.querySelectorAll('a').forEach(function (a) {
+                        if (a.href && !a.target) {
+                            a.target = '_blank';
+                            a.rel = 'noopener noreferrer';
+                        }
+                    });
+                }, 10);
+
+            } else if (type === 'image') {
+                var img = document.createElement('img');
+                img.src = url;
+                img.alt = '';
+                insertBlockAtCursor(img);
+
+            } else if (type === 'video') {
+                var parsed = parseVideoUrl(url);
+                if (!parsed) {
+                    showStatus('지원하지 않는 영상 URL입니다. (YouTube, Vimeo 지원)');
+                    return;
+                }
+                var wrapper = document.createElement('div');
+                wrapper.className = 'video-embed';
+                wrapper.contentEditable = 'false';
+                var iframe = document.createElement('iframe');
+                iframe.width = '560';
+                iframe.height = '315';
+                iframe.src = parsed.src;
+                iframe.title = 'Embedded video';
+                iframe.setAttribute('frameborder', '0');
+                iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
+                iframe.setAttribute('referrerpolicy', 'no-referrer');
+                iframe.setAttribute('allowfullscreen', '');
+                wrapper.appendChild(iframe);
+                insertBlockAtCursor(wrapper);
+            }
+
+            // Reset state
+            insertType = null;
+            selectionBeforeModal = null;
+            updateCharCount();
+        }
+
+        // Insert an inline node (like <a>) at cursor position
+        // Check if current selection is inside the editor
+        function isSelectionInEditor() {
+            var sel = window.getSelection();
+            if (!sel.rangeCount) return false;
+            return editorEl.contains(sel.getRangeAt(0).startContainer);
+        }
+
+        function insertNodeAtCursor(node) {
+            ensureCursorInEditor();
+            var sel = window.getSelection();
+            if (sel.rangeCount > 0 && isSelectionInEditor()) {
+                var range = sel.getRangeAt(0);
+                range.deleteContents();
+                range.insertNode(node);
+                range.setStartAfter(node);
+                range.collapse(true);
+                sel.removeAllRanges();
+                sel.addRange(range);
+            } else {
+                editorEl.appendChild(node);
+            }
+        }
+
+        // Insert a block element (image, video) — adds a new paragraph after for continued editing
+        function insertBlockAtCursor(element) {
+            ensureCursorInEditor();
+            var sel = window.getSelection();
+            var afterP = document.createElement('p');
+            afterP.innerHTML = '<br>';
+
+            if (sel.rangeCount > 0 && isSelectionInEditor()) {
+                var range = sel.getRangeAt(0);
+                range.deleteContents();
+
+                // Walk up to a block-level parent to insert after it
+                var block = range.startContainer;
+                if (block.nodeType === 3) block = block.parentNode;
+                while (block && block !== editorEl && !['P','H1','H2','H3','DIV','LI','BLOCKQUOTE','PRE'].includes(block.tagName)) {
+                    block = block.parentNode;
+                }
+
+                if (block && block !== editorEl) {
+                    block.parentNode.insertBefore(element, block.nextSibling);
+                    element.parentNode.insertBefore(afterP, element.nextSibling);
+                } else {
+                    editorEl.appendChild(element);
+                    editorEl.appendChild(afterP);
+                }
+            } else {
+                editorEl.appendChild(element);
+                editorEl.appendChild(afterP);
+            }
+
+            // Place cursor in the new paragraph
+            var newRange = document.createRange();
+            newRange.setStart(afterP, 0);
+            newRange.collapse(true);
+            sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(newRange);
+        }
+
+        document.getElementById('modalCloseBtn').addEventListener('click', function (e) { e.preventDefault(); closeInsertModal(); });
+        document.getElementById('modalCancelBtn').addEventListener('click', function (e) { e.preventDefault(); closeInsertModal(); });
+        insertModal.addEventListener('click', function (e) { if (e.target === insertModal) closeInsertModal(); });
+        modalConfirmBtn.addEventListener('click', function (e) { e.preventDefault(); doInsert(); });
+        modalUrlInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); doInsert(); } });
+        modalTextInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); doInsert(); } });
+
+        // Toolbar buttons
+        document.getElementById('linkBtn').addEventListener('click', function (e) { e.preventDefault(); openInsertModal('link'); });
+        document.getElementById('imageBtn').addEventListener('click', function (e) { e.preventDefault(); openInsertModal('image'); });
+        document.getElementById('videoBtn').addEventListener('click', function (e) { e.preventDefault(); openInsertModal('video'); });
+        document.getElementById('mobileImageBtn').addEventListener('click', function (e) { e.preventDefault(); closeBottomSheet(); setTimeout(function () { openInsertModal('image'); }, 200); });
+        document.getElementById('mobileVideoBtn').addEventListener('click', function (e) { e.preventDefault(); closeBottomSheet(); setTimeout(function () { openInsertModal('video'); }, 200); });
+
+        // ===== Media Resizable Wrappers =====
+        // Wrap img / .video-embed in a .media-resizable container with handles
+        function wrapMediaElement(el) {
+            // Don't double-wrap
+            if (el.parentNode && el.parentNode.classList && el.parentNode.classList.contains('media-resizable')) return el.parentNode;
+            var wrapper = document.createElement('div');
+            wrapper.className = 'media-resizable';
+            wrapper.contentEditable = 'false';
+            // Default width (clamped to editor content area)
+            var maxW = getMaxMediaWidth();
+            if (el.tagName === 'IMG') {
+                wrapper.style.width = Math.min(el.naturalWidth || 400, maxW) + 'px';
+            } else {
+                wrapper.style.width = Math.min(560, maxW) + 'px';
+            }
+            el.parentNode.insertBefore(wrapper, el);
+            wrapper.appendChild(el);
+            // Add resize handles
+            ['nw','ne','sw','se'].forEach(function (pos) {
+                var handle = document.createElement('div');
+                handle.className = 'resize-handle resize-handle-' + pos;
+                handle.setAttribute('data-handle', pos);
+                wrapper.appendChild(handle);
+            });
+            return wrapper;
+        }
+
+        // Ensure all images/videos in editor are wrapped
+        function ensureMediaWrapped() {
+            editorEl.querySelectorAll('img').forEach(function (img) {
+                if (!img.closest('.media-resizable')) wrapMediaElement(img);
+            });
+            editorEl.querySelectorAll('.video-embed').forEach(function (ve) {
+                if (!ve.closest('.media-resizable')) wrapMediaElement(ve);
+            });
+        }
+
+        // ensureMediaWrapped is called via autoFixEditorContent on input
+
+        // Selected media state
+        var selectedMedia = null;
+        var imgContextMenu = document.getElementById('imgContextMenu');
+
+        function selectMedia(wrapper) {
+            deselectMedia();
+            if (!wrapper) return;
+            wrapper.classList.add('media-selected');
+            selectedMedia = wrapper;
+        }
+        function deselectMedia() {
+            if (selectedMedia) {
+                selectedMedia.classList.remove('media-selected');
+                selectedMedia = null;
+            }
+            closeContextMenu();
+        }
+        function closeContextMenu() {
+            imgContextMenu.classList.remove('open');
+        }
+
+        // Click handling: select media, Ctrl+click links, deselect on outside click
+        editorEl.addEventListener('mousedown', function (e) {
+            var resizable = e.target.closest('.media-resizable');
+            // If clicking on a resize handle, don't change selection
+            if (e.target.classList.contains('resize-handle')) return;
+
+            if (resizable) {
+                e.preventDefault();
+                // Deactivate any previously active video
+                deactivateVideos();
+                selectMedia(resizable);
+                return;
+            }
+
+            // Ctrl+click on link → open in new tab
+            if (e.ctrlKey || e.metaKey) {
+                var link = e.target.closest('a');
+                if (link && link.href) {
+                    e.preventDefault();
+                    window.open(link.href, '_blank', 'noopener,noreferrer');
+                    return;
+                }
+            }
+
+            // Click elsewhere → deselect & deactivate videos
+            deselectMedia();
+            deactivateVideos();
+        });
+
+        // Double-click on video → activate playback (pointer-events on iframe)
+        editorEl.addEventListener('dblclick', function (e) {
+            var resizable = e.target.closest('.media-resizable');
+            if (!resizable) return;
+            var videoEmbed = resizable.querySelector('.video-embed');
+            if (!videoEmbed) return;
+            e.preventDefault();
+            // Deactivate others first
+            deactivateVideos();
+            videoEmbed.classList.add('video-active');
+            resizable.classList.remove('media-selected');
+            selectedMedia = null;
+            showStatus('영상 활성화됨 — 바깥을 클릭하면 편집 모드로 돌아갑니다.');
+        });
+
+        function deactivateVideos() {
+            editorEl.querySelectorAll('.video-embed.video-active').forEach(function (ve) {
+                ve.classList.remove('video-active');
+            });
+        }
+
+        // Deselect when clicking outside editor
+        document.addEventListener('mousedown', function (e) {
+            if (!editorEl.contains(e.target) && !imgContextMenu.contains(e.target)) {
+                deselectMedia();
+                deactivateVideos();
+            }
+        });
+
+        // ===== Resize by dragging handles =====
+        var resizeState = null;
+
+        function onResizeStart(e) {
+            var handle = e.target;
+            if (!handle.classList.contains('resize-handle')) return;
+            e.preventDefault();
+            e.stopPropagation();
+            var wrapper = handle.closest('.media-resizable');
+            if (!wrapper) return;
+            selectMedia(wrapper);
+            var rect = wrapper.getBoundingClientRect();
+            resizeState = {
+                wrapper: wrapper,
+                handle: handle.getAttribute('data-handle'),
+                startX: e.clientX,
+                startY: e.clientY,
+                startW: rect.width,
+                startH: rect.height,
+                aspectRatio: rect.width / rect.height
+            };
+            document.addEventListener('mousemove', onResizeMove);
+            document.addEventListener('mouseup', onResizeEnd);
+        }
+
+        function getMaxMediaWidth() {
+            var style = window.getComputedStyle(editorEl);
+            var padL = parseFloat(style.paddingLeft) || 0;
+            var padR = parseFloat(style.paddingRight) || 0;
+            return editorEl.clientWidth - padL - padR;
+        }
+
+        function onResizeMove(e) {
+            if (!resizeState) return;
+            var dx = e.clientX - resizeState.startX;
+            var newW = resizeState.startW;
+            var h = resizeState.handle;
+            if (h === 'se' || h === 'ne') newW = resizeState.startW + dx;
+            else newW = resizeState.startW - dx;
+            var maxW = getMaxMediaWidth();
+            newW = Math.max(100, Math.min(newW, maxW));
+            resizeState.wrapper.style.width = newW + 'px';
+        }
+
+        function onResizeEnd(e) {
+            resizeState = null;
+            document.removeEventListener('mousemove', onResizeMove);
+            document.removeEventListener('mouseup', onResizeEnd);
+        }
+
+        editorEl.addEventListener('mousedown', onResizeStart);
+
+        // Touch support for mobile resize
+        editorEl.addEventListener('touchstart', function (e) {
+            var handle = e.target;
+            if (!handle.classList.contains('resize-handle')) return;
+            e.preventDefault();
+            var touch = e.touches[0];
+            var wrapper = handle.closest('.media-resizable');
+            if (!wrapper) return;
+            selectMedia(wrapper);
+            var rect = wrapper.getBoundingClientRect();
+            resizeState = {
+                wrapper: wrapper,
+                handle: handle.getAttribute('data-handle'),
+                startX: touch.clientX,
+                startY: touch.clientY,
+                startW: rect.width,
+                startH: rect.height,
+                aspectRatio: rect.width / rect.height
+            };
+
+            function onTouchMove(ev) {
+                if (!resizeState) return;
+                var t = ev.touches[0];
+                var dx = t.clientX - resizeState.startX;
+                var newW = resizeState.startW;
+                var h = resizeState.handle;
+                if (h === 'se' || h === 'ne') newW = resizeState.startW + dx;
+                else newW = resizeState.startW - dx;
+                var maxW = getMaxMediaWidth();
+                newW = Math.max(100, Math.min(newW, maxW));
+                resizeState.wrapper.style.width = newW + 'px';
+            }
+            function onTouchEnd() {
+                resizeState = null;
+                document.removeEventListener('touchmove', onTouchMove);
+                document.removeEventListener('touchend', onTouchEnd);
+            }
+            document.addEventListener('touchmove', onTouchMove, { passive: false });
+            document.addEventListener('touchend', onTouchEnd);
+        }, { passive: false });
+
+        // ===== Image Context Menu (right-click) =====
+        editorEl.addEventListener('contextmenu', function (e) {
+            var resizable = e.target.closest('.media-resizable');
+            if (!resizable) { closeContextMenu(); return; }
+            // Only show for images
+            var img = resizable.querySelector('img');
+            if (!img) { closeContextMenu(); return; }
+
+            e.preventDefault();
+            selectMedia(resizable);
+
+            // Position context menu
+            var x = e.clientX;
+            var y = e.clientY;
+            imgContextMenu.classList.add('open');
+            // Ensure menu stays in viewport
+            var menuRect = imgContextMenu.getBoundingClientRect();
+            if (x + menuRect.width > window.innerWidth) x = window.innerWidth - menuRect.width - 8;
+            if (y + menuRect.height > window.innerHeight) y = window.innerHeight - menuRect.height - 8;
+            imgContextMenu.style.left = x + 'px';
+            imgContextMenu.style.top = y + 'px';
+        });
+
+        // Close context menu on any click outside
+        document.addEventListener('mousedown', function (e) {
+            if (!imgContextMenu.contains(e.target)) closeContextMenu();
+        });
+
+        // Context menu: change image URL
+        document.getElementById('ctxChangeImageUrl').addEventListener('click', function () {
+            if (!selectedMedia) return;
+            var img = selectedMedia.querySelector('img');
+            if (!img) return;
+            closeContextMenu();
+            // Re-use the insert modal
+            insertType = 'changeImageUrl';
+            modalTitle.textContent = '이미지 URL 변경';
+            modalUrlLabel.textContent = '새 이미지 URL';
+            modalUrlInput.placeholder = 'https://example.com/image.jpg';
+            modalUrlInput.value = img.src;
+            modalTextField.style.display = 'none';
+            modalHint.textContent = '새 이미지 URL을 입력하세요.';
+            insertModal.classList.add('open');
+            setTimeout(function () { modalUrlInput.focus(); modalUrlInput.select(); }, 100);
+        });
+
+        // Context menu: add link to image
+        document.getElementById('ctxAddImageLink').addEventListener('click', function () {
+            if (!selectedMedia) return;
+            var img = selectedMedia.querySelector('img');
+            if (!img) return;
+            closeContextMenu();
+            // Check if already wrapped in <a>
+            var existingLink = img.closest('a');
+            insertType = 'addImageLink';
+            modalTitle.textContent = '이미지에 링크 넣기';
+            modalUrlLabel.textContent = '링크 URL';
+            modalUrlInput.placeholder = 'https://example.com';
+            modalUrlInput.value = existingLink ? existingLink.href : '';
+            modalTextField.style.display = 'none';
+            modalHint.textContent = '이미지를 클릭했을 때 이동할 링크를 입력하세요.';
+            insertModal.classList.add('open');
+            setTimeout(function () { modalUrlInput.focus(); modalUrlInput.select(); }, 100);
+        });
+
+        // Context menu: delete media
+        document.getElementById('ctxRemoveMedia').addEventListener('click', function () {
+            if (!selectedMedia) return;
+            closeContextMenu();
+            selectedMedia.remove();
+            selectedMedia = null;
+            updateCharCount();
+        });
+
+        // Extend doInsert to handle context menu actions
+        var originalDoInsert = doInsert;
+        doInsert = function () {
+            var url = modalUrlInput.value.trim();
+            if (!url) { modalUrlInput.focus(); return; }
+
+            if (insertType === 'changeImageUrl') {
+                if (selectedMedia) {
+                    var img = selectedMedia.querySelector('img');
+                    if (img) img.src = url;
+                }
+                closeInsertModal();
+                insertType = null;
+                return;
+            }
+
+            if (insertType === 'addImageLink') {
+                if (selectedMedia) {
+                    var img = selectedMedia.querySelector('img');
+                    if (img) {
+                        var existingA = img.closest('a');
+                        if (existingA) {
+                            existingA.href = url;
+                        } else {
+                            var a = document.createElement('a');
+                            a.href = url;
+                            a.target = '_blank';
+                            a.rel = 'noopener noreferrer';
+                            // Move the resizable wrapper inside the link... or link inside wrapper
+                            // Wrap img with <a> inside the resizable wrapper
+                            img.parentNode.insertBefore(a, img);
+                            a.appendChild(img);
+                        }
+                    }
+                }
+                closeInsertModal();
+                insertType = null;
+                return;
+            }
+
+            // Default behavior for link/image/video insert
+            originalDoInsert();
+        };
+
+        // Override the insertBlockAtCursor to auto-wrap new images/videos
+        var originalInsertBlock = insertBlockAtCursor;
+        insertBlockAtCursor = function (element) {
+            // Wrap in resizable before inserting
+            var wrapper = document.createElement('div');
+            wrapper.className = 'media-resizable';
+            wrapper.contentEditable = 'false';
+            var maxW = getMaxMediaWidth();
+            if (element.tagName === 'IMG') {
+                wrapper.style.width = Math.min(400, maxW) + 'px';
+            } else {
+                wrapper.style.width = Math.min(560, maxW) + 'px';
+            }
+            wrapper.appendChild(element);
+            ['nw','ne','sw','se'].forEach(function (pos) {
+                var handle = document.createElement('div');
+                handle.className = 'resize-handle resize-handle-' + pos;
+                handle.setAttribute('data-handle', pos);
+                wrapper.appendChild(handle);
+            });
+            originalInsertBlock(wrapper);
+            selectMedia(wrapper);
+
+            // For images: once loaded, adjust to natural size
+            if (element.tagName === 'IMG') {
+                element.onload = function () {
+                    var maxW = editorEl.clientWidth - 48;
+                    var natural = element.naturalWidth || 400;
+                    wrapper.style.width = Math.min(natural, maxW) + 'px';
+                };
+            }
+        };
+
+        // Keyboard: Delete/Backspace to remove selected media
+        document.addEventListener('keydown', function (e) {
+            if (!selectedMedia) return;
+            if (e.key === 'Delete' || e.key === 'Backspace') {
+                // Don't intercept if focus is in an input/textarea
+                if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
+                e.preventDefault();
+                selectedMedia.remove();
+                selectedMedia = null;
+                updateCharCount();
+            }
+        });
+
         // ===== Style select (H1/H2/H3/P) =====
         document.getElementById('styleSelect').addEventListener('change', function () {
             const tag = this.value;
@@ -1363,6 +2239,82 @@
             if (ctrl && e.key.toLowerCase() === 'u') { e.preventDefault(); exec('underline'); }
         });
 
+        // ===== Auto-link detection =====
+        // When user types a URL and presses Space or Enter, auto-convert to <a>
+        editorEl.addEventListener('keydown', function (e) {
+            if (e.key !== ' ' && e.key !== 'Enter') return;
+            // Don't auto-link inside code blocks
+            if (isInsideSpecialBlock() === 'PRE') return;
+
+            var sel = window.getSelection();
+            if (!sel.rangeCount || !sel.isCollapsed) return;
+
+            var node = sel.anchorNode;
+            if (!node || node.nodeType !== 3) return;
+            // Don't re-link if already inside an <a>
+            if (getClosest(node.parentNode, ['A'])) return;
+
+            var text = node.textContent;
+            var offset = sel.anchorOffset;
+            var before = text.substring(0, offset);
+
+            // Find URL at the end of text before cursor
+            var urlMatch = before.match(/(https?:\/\/[^\s]+)$/);
+            if (!urlMatch) return;
+
+            var url = urlMatch[1];
+            var urlStart = urlMatch.index;
+
+            // Create the link element
+            var a = document.createElement('a');
+            a.href = url;
+            a.textContent = url;
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer';
+
+            // Split the text node and replace URL portion
+            var afterText = text.substring(offset);
+            var beforeText = text.substring(0, urlStart);
+
+            // Build replacement
+            node.textContent = beforeText;
+            var parent = node.parentNode;
+            var refNode = node.nextSibling;
+            parent.insertBefore(a, refNode);
+
+            if (afterText) {
+                var afterNode = document.createTextNode(afterText);
+                parent.insertBefore(afterNode, refNode);
+            }
+
+            // Place cursor after the link (the space/enter will be inserted naturally)
+            var range = document.createRange();
+            if (a.nextSibling) {
+                range.setStartBefore(a.nextSibling);
+            } else {
+                range.setStartAfter(a);
+            }
+            range.collapse(true);
+            sel.removeAllRanges();
+            sel.addRange(range);
+        });
+
+        // Also auto-link on paste: if pasted text is a URL, make it a link
+        editorEl.addEventListener('paste', function (e) {
+            var clipText = (e.clipboardData || window.clipboardData).getData('text/plain').trim();
+            if (/^https?:\/\/[^\s]+$/.test(clipText)) {
+                // Don't auto-link inside code
+                if (isInsideSpecialBlock() === 'PRE') return;
+                e.preventDefault();
+                var a = document.createElement('a');
+                a.href = clipText;
+                a.textContent = clipText;
+                a.target = '_blank';
+                a.rel = 'noopener noreferrer';
+                insertNodeAtCursor(a);
+            }
+        });
+
         // ===== Toolbar state =====
         function updateToolbarState() {
             ['bold', 'italic', 'underline', 'insertUnorderedList', 'insertOrderedList'].forEach(function (cmd) {
@@ -1381,53 +2333,77 @@
         });
         editorEl.addEventListener('mouseup', updateToolbarState);
 
-        // ===== Auto-add copy buttons to PRE elements =====
-        editorEl.addEventListener('click', function () {
-            setTimeout(function () {
+        // ===== Auto-add copy buttons to PRE elements & wrap media =====
+        var autoFixTimer = null;
+        function autoFixEditorContent() {
+            clearTimeout(autoFixTimer);
+            autoFixTimer = setTimeout(function () {
                 editorEl.querySelectorAll('pre').forEach(addCopyButton);
-            }, 10);
-        });
+                ensureMediaWrapped();
+            }, 100);
+        }
+        editorEl.addEventListener('input', autoFixEditorContent);
 
         // ===== HTML Prettify =====
         function prettifyHTML(html) {
-            let formatted = '';
-            let indent = 0;
-            const indentStr = '  ';
-            const voidElements = ['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr'];
+            var voidElements = ['area','base','br','col','embed','hr','img','input','link','meta','param','source','track','wbr'];
+            var inlineElements = ['a','abbr','b','bdo','cite','code','dfn','em','i','kbd','mark','q','s','samp','small','span','strong','sub','sup','u','var','font','button'];
+            var indentStr = '  ';
 
-            const temp = document.createElement('div');
+            var temp = document.createElement('div');
             temp.innerHTML = html;
 
             // Wrap naked text nodes in <p>
             Array.from(temp.childNodes).forEach(function (node) {
                 if (node.nodeType === 3 && node.textContent.trim()) {
-                    const p = document.createElement('p');
+                    var p = document.createElement('p');
                     p.textContent = node.textContent;
                     temp.replaceChild(p, node);
                 }
             });
 
-            html = temp.innerHTML;
-            const regex = /(<[^/>]*>)|(<\/[^>]*>)|([^<]+)/g;
-            let match;
+            function serializeNode(node, depth) {
+                var result = '';
+                var pad = indentStr.repeat(depth);
 
-            while ((match = regex.exec(html)) !== null) {
-                const content = match[0].trim();
-                if (!content) continue;
-                if (content.startsWith('</')) {
-                    indent = Math.max(0, indent - 1);
-                    formatted += indentStr.repeat(indent) + content + '\n';
-                } else if (content.startsWith('<') && content.endsWith('/>')) {
-                    formatted += indentStr.repeat(indent) + content + '\n';
-                } else if (content.startsWith('<')) {
-                    const tagName = (content.match(/<(\w+)/) || [])[1];
-                    formatted += indentStr.repeat(indent) + content + '\n';
-                    if (tagName && !voidElements.includes(tagName.toLowerCase())) indent++;
-                } else {
-                    if (content.trim()) formatted += indentStr.repeat(indent) + content + '\n';
+                for (var i = 0; i < node.childNodes.length; i++) {
+                    var child = node.childNodes[i];
+
+                    if (child.nodeType === 3) {
+                        // Text node
+                        var txt = child.textContent;
+                        if (txt.trim()) result += pad + txt.trim() + '\n';
+                        continue;
+                    }
+                    if (child.nodeType !== 1) continue;
+
+                    var tag = child.tagName.toLowerCase();
+                    var isVoid = voidElements.indexOf(tag) !== -1;
+                    var isInline = inlineElements.indexOf(tag) !== -1;
+
+                    // Build opening tag with attributes
+                    var openTag = '<' + tag;
+                    for (var a = 0; a < child.attributes.length; a++) {
+                        var attr = child.attributes[a];
+                        openTag += ' ' + attr.name + '="' + attr.value.replace(/"/g, '&quot;') + '"';
+                    }
+
+                    if (isVoid) {
+                        result += pad + openTag + '>\n';
+                    } else if (isInline || (!child.children.length && child.textContent.length < 80)) {
+                        // Inline or short content → single line
+                        result += pad + openTag + '>' + child.innerHTML.trim() + '</' + tag + '>\n';
+                    } else {
+                        // Block element → indent children
+                        result += pad + openTag + '>\n';
+                        result += serializeNode(child, depth + 1);
+                        result += pad + '</' + tag + '>\n';
+                    }
                 }
+                return result;
             }
-            return formatted.trim();
+
+            return serializeNode(temp, 0).trim();
         }
 
         // ===== HTML → Markdown conversion =====
@@ -1454,7 +2430,14 @@
                     case 'H2': md += '\n## ' + inner.trim() + '\n\n'; break;
                     case 'H3': md += '\n### ' + inner.trim() + '\n\n'; break;
                     case 'P':
-                    case 'DIV': md += inner.trim() + '\n\n'; break;
+                    case 'DIV':
+                        if (child.classList && child.classList.contains('video-embed')) {
+                            var vIframe = child.querySelector('iframe');
+                            if (vIframe) md += '\n[Embedded Video](' + (vIframe.getAttribute('src') || '') + ')\n\n';
+                        } else {
+                            md += inner.trim() + '\n\n';
+                        }
+                        break;
                     case 'BR': md += '\n'; break;
                     case 'STRONG':
                     case 'B': md += '**' + inner + '**'; break;
@@ -1490,6 +2473,15 @@
                         var href = child.getAttribute('href') || '';
                         md += '[' + inner + '](' + href + ')';
                         break;
+                    case 'IMG':
+                        var src = child.getAttribute('src') || '';
+                        var alt = child.getAttribute('alt') || '';
+                        md += '![' + alt + '](' + src + ')';
+                        break;
+                    case 'IFRAME':
+                        var iframeSrc = child.getAttribute('src') || '';
+                        md += '\n[Embedded Video](' + iframeSrc + ')\n';
+                        break;
                     case 'SPAN':
                     case 'FONT': md += inner; break;
                     case 'BUTTON': break; // skip copy buttons
@@ -1500,15 +2492,66 @@
         }
 
         // ===== Mode switching =====
+        // Snapshot of editor HTML taken when LEAVING editor mode
+        var editorSnapshot = '';
+
+        // Strip editor-only elements (resize handles, copy buttons, wrappers) for clean output
+        function getCleanHTML() {
+            var clone = editorEl.cloneNode(true);
+
+            // Unwrap .media-resizable: replace wrapper with its content (img or .video-embed)
+            clone.querySelectorAll('.media-resizable').forEach(function (wrapper) {
+                // Preserve the width as inline style on the inner media element
+                var w = wrapper.style.width;
+                var inner = wrapper.querySelector('img, .video-embed');
+                if (inner) {
+                    if (w) inner.style.width = w;
+                    inner.style.maxWidth = '100%';
+                    wrapper.parentNode.insertBefore(inner, wrapper);
+                }
+                wrapper.remove();
+            });
+
+            // Remove resize handles (in case any orphaned)
+            clone.querySelectorAll('.resize-handle').forEach(function (h) { h.remove(); });
+
+            // Remove copy buttons from code blocks
+            clone.querySelectorAll('.copy-code-btn').forEach(function (b) { b.remove(); });
+
+            // Remove contenteditable attributes from inner elements
+            clone.querySelectorAll('[contenteditable]').forEach(function (el) {
+                el.removeAttribute('contenteditable');
+            });
+
+            return clone.innerHTML;
+        }
+
         function switchMode(mode) {
+            // ---- Leaving current mode ----
+            if (currentMode === 'editor' && mode !== 'editor') {
+                // Save a clean snapshot for output, and raw for restoration
+                editorSnapshot = editorEl.innerHTML;
+            }
+
+            // ---- Entering new mode ----
             if (mode === 'html') {
-                htmlModeEl.value = prettifyHTML(editorEl.innerHTML);
+                htmlModeEl.value = prettifyHTML(getCleanHTML());
             } else if (mode === 'markdown') {
-                markdownModeEl.value = htmlToMarkdown(editorEl.innerHTML);
-            } else if (mode === 'editor' && currentMode === 'html') {
-                editorEl.innerHTML = htmlModeEl.value;
-                // Re-add copy buttons
+                markdownModeEl.value = htmlToMarkdown(getCleanHTML());
+            } else if (mode === 'editor') {
+                if (currentMode === 'html') {
+                    // User may have edited HTML — apply it back
+                    editorEl.innerHTML = htmlModeEl.value;
+                } else {
+                    // Coming from markdown (read-only) — restore original snapshot
+                    if (editorSnapshot) {
+                        editorEl.innerHTML = editorSnapshot;
+                    }
+                }
+                // Re-add copy buttons and media wrappers
                 editorEl.querySelectorAll('pre').forEach(addCopyButton);
+                ensureMediaWrapped();
+                editorSnapshot = '';
             }
 
             editorEl.style.display = mode === 'editor' ? 'block' : 'none';
